@@ -1,0 +1,216 @@
+<!DOCTYPE html><html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>THE BEST - تسجيل دخول الطالب</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Cairo', sans-serif;
+    }body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top left, #141E30, #243B55);
+  overflow: hidden;
+  color: white;
+}
+
+.login-box {
+  background: rgba(0, 0, 0, 0.6);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+}
+
+.login-box h1 {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.login-box h2 {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.login-box input[type="text"] {
+  padding: 14px;
+  width: 100%;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  font-size: 18px;
+  text-align: center;
+  background: #111;
+  color: #fff;
+  margin-bottom: 15px;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.login-box input[type="text"]:focus {
+  box-shadow: 0 0 15px #00f5c4;
+}
+
+.login-box button {
+  width: 100%;
+  padding: 12px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  color: white;
+  cursor: pointer;
+  transition: all 0.4s ease;
+}
+
+.login-box button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #00f5c4;
+}
+
+#status {
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+.error {
+  color: #ff4f4f;
+}
+
+.success {
+  color: #00f5c4;
+}
+
+#contactDev {
+  margin-top: 15px;
+  display: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #25d366, #128c7e);
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(0,255,0,0.3);
+}
+
+#contactDev:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #25d366;
+}
+
+#contactDev img {
+  width: 20px;
+  height: 20px;
+}
+
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h1>THE BEST</h1>
+    <h2>ادخل كود الدخول</h2>
+    <input type="text" id="codeInput" placeholder="CODE">
+    <button onclick="verifyCode()">تسجيل الدخول</button>
+    <p id="status"></p>
+    <a id="contactDev" href="https://wa.me/201001257486" target="_blank">
+      <img src="https://img.icons8.com/color/48/000000/whatsapp--v1.png" alt="واتساب">
+      تواصل مع المطور
+    </a>
+  </div>  <script>
+  const firebaseConfig = {
+    databaseURL: "https://website-83e14-default-rtdb.firebaseio.com/",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const deviceId = localStorage.getItem("deviceId") || generateDeviceId();
+  localStorage.setItem("deviceId", deviceId);
+
+  // ✅ تحقق تلقائي عند التحميل
+  window.onload = function () {
+    const savedCode = localStorage.getItem("savedCode");
+    if (savedCode) {
+      autoLogin(savedCode);
+    }
+  };
+
+  function generateDeviceId() {
+    return 'xxxxxx'.replace(/x/g, () => Math.floor(Math.random() * 10));
+  }
+
+  function verifyCode() {
+    const code = document.getElementById("codeInput").value.trim();
+    const status = document.getElementById("status");
+    const contactBtn = document.getElementById("contactDev");
+
+    status.textContent = "جارٍ التحقق...";
+    status.className = "";
+    contactBtn.style.display = "none";
+
+    db.ref("codes").once("value", (snapshot) => {
+      let found = false;
+      snapshot.forEach((child) => {
+        const data = child.val();
+        const key = child.key;
+
+        if (data.code === code) {
+          found = true;
+          const now = Date.now();
+
+          if (data.expire <= now) {
+            status.textContent = "⛔ الكود منتهي الصلاحية.";
+            status.className = "error";
+          } else if (data.deviceId && data.deviceId !== deviceId) {
+            status.textContent = "⚠️ هذا الكود مفعل على جهاز آخر.";
+            status.className = "error";
+          } else {
+            status.textContent = "✅ تم تسجيل الدخول بنجاح!";
+            status.className = "success";
+            db.ref("codes/" + key).update({ deviceId: deviceId });
+            localStorage.setItem("savedCode", code); // ✅ حفظ الكود
+            // window.location.href = "home.html";
+          }
+        }
+      });
+
+      if (!found) {
+        status.textContent = "❌ الكود غير صحيح.";
+        status.className = "error";
+        contactBtn.style.display = "flex";
+      }
+    });
+  }
+
+  function autoLogin(savedCode) {
+    db.ref("codes").once("value", (snapshot) => {
+      snapshot.forEach((child) => {
+        const data = child.val();
+        const key = child.key;
+
+        if (data.code === savedCode && data.deviceId === deviceId) {
+          const now = Date.now();
+          if (data.expire > now) {
+            // ✅ دخول تلقائي
+            document.getElementById("status").textContent = "✅ تم تسجيل الدخول تلقائياً.";
+            document.getElementById("status").className = "success";
+            // window.location.href = "home.html";
+          }
+        }
+      });
+    });
+  }
+</script></body>
+</html>
