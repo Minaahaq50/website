@@ -181,7 +181,8 @@
             status.className = "success";
             db.ref("codes/" + key).update({ deviceId: deviceId });
             localStorage.setItem("savedCode", code); // ✅ حفظ الكود
-             window.location.href = "home.html";
+             console.log("✅ سيتم التحويل الآن...");
+window.location.href = "home.html";;
           }
         }
       });
@@ -206,7 +207,8 @@
             // ✅ دخول تلقائي
             document.getElementById("status").textContent = "✅ تم تسجيل الدخول تلقائياً.";
             document.getElementById("status").className = "success";
-            window.location.href = "home.html";
+            console.log("✅ سيتم التحويل الآن...");
+window.location.href = "home.html";;
           }
         }
       });
