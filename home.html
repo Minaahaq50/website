@@ -45,10 +45,6 @@
       transform: scale(1.05);
       box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
     }
-    .filter-bar button:active {
-      transform: scale(0.95);
-      box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
-    }
     #teachers-filter {
       text-align: center;
       margin-bottom: 20px;
@@ -121,6 +117,8 @@
     📚 منصة الصف الثالث الثانوي - THE BEST 📚
   </header>
 
+  <div id="countdown" style="text-align:center; font-size:18px; color:#ffd700; margin-top:10px;"></div>
+
   <div class="filter-bar">
     <button onclick="filterVideos('إنجليزي')">E</button>
     <button onclick="filterVideos('عربي')">عربي</button>
@@ -132,9 +130,7 @@
 
   <div id="teachers-filter"></div>
 
-  <main id="videos-container">
-    <div class="loading" style="text-align:center; font-size:18px; color:#ffd700;">اضغط علي اسم الماده للحصول علي المدرسين.</div>
-  </main>
+  <main id="videos-container"></main>
 
   <footer>
     جميع الحقوق محفوظة © منصة THE BEST - 2025
@@ -159,10 +155,45 @@
     const db = getDatabase(app);
     const videosContainer = document.getElementById('videos-container');
     const teachersFilter = document.getElementById('teachers-filter');
+    const countdownEl = document.getElementById('countdown');
 
     let allVideos = [];
     let selectedSubject = null;
     let selectedTeacher = null;
+
+    // نظام العداد 30 يوم
+    const subscriptionKey = "student_subscription_start";
+    const subscriptionDays = 30;
+
+    function startCountdown(endTime) {
+      const timer = setInterval(() => {
+        const now = Date.now();
+        const diff = endTime - now;
+
+        if (diff <= 0) {
+          clearInterval(timer);
+          countdownEl.innerHTML = "⛔ انتهت مدة الاشتراك.";
+          videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:red;">انتهت مدة الاشتراك.</div>';
+          teachersFilter.innerHTML = '';
+          return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        countdownEl.innerHTML = ⏳ الوقت المتبقي: ${days} يوم ${hours} ساعة ${minutes} دقيقة ${seconds} ثانية;
+      }, 1000);
+    }
+
+    const startDate = localStorage.getItem(subscriptionKey);
+    if (startDate) {
+      const endTime = parseInt(startDate) + subscriptionDays * 24 * 60 * 60 * 1000;
+      startCountdown(endTime);
+    } else {
+      videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:red;">❌ لا يوجد اشتراك فعال.</div>';
+    }
 
     function renderTeachers(subject) {
       teachersFilter.innerHTML = '';
@@ -182,19 +213,12 @@
       teachersSet.forEach(teacher => {
         const btn = document.createElement('button');
         btn.textContent = teacher;
-
         btn.onclick = () => {
           selectedTeacher = teacher;
-
-          // إزالة التفعيل من جميع الأزرار
           [...teachersFilter.children].forEach(c => c.classList.remove('active'));
-
-          // تفعيل الزر المضغوط فقط
           btn.classList.add('active');
-
           renderVideos(selectedSubject, selectedTeacher);
         };
-
         teachersFilter.appendChild(btn);
       });
     }
@@ -204,7 +228,6 @@
       selectedSubject = subject;
 
       let filtered = allVideos.filter(v => v.subject?.trim() === subject);
-
       if (teacher) {
         filtered = filtered.filter(v => (v.teacher?.trim() || 'مدرس غير معروف') === teacher);
       }
@@ -228,7 +251,6 @@
 
     window.filterVideos = (subject) => {
       if (subject === 'all') {
-        videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اضغط علي اسم الماده للحصول علي الفيديوهات.</div>';
         teachersFilter.innerHTML = '';
         selectedSubject = null;
         selectedTeacher = null;
@@ -237,7 +259,6 @@
       selectedSubject = subject;
       selectedTeacher = null;
       renderTeachers(subject);
-      videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اختر مدرس لعرض الفيديوهات.</div>';
     };
 
     // جلب الفيديوهات من قاعدة البيانات
@@ -253,10 +274,6 @@
           teacher: data[key].teacher || 'مدرس غير معروف'
         });
       }
-
-      // أول مرة تعرض رسالة ترحيبية أو تعليمات
-      videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اضغط علي اسم الماده للحصول علي المدرسين.</div>';
-      teachersFilter.innerHTML = '';
     });
   </script>
 </body>
