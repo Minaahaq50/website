@@ -119,24 +119,15 @@
 </head>
 <body>
   <div class="login-box">
-   <h1>THE BEST</h1>
-<h2>ادخل كود الدخول</h2>
-
-<input type="text" id="codeInput" placeholder="CODE">
-<button onclick="verifyCode()">تسجيل الدخول</button>
-
-<p id="status"></p>
-
-<!-- ✅ زر تواصل مع المطور (معدل) -->
-<a id="contactDev" href="https://wa.me/201001257486"
-   onclick="window.location.href='https://wa.me/201001257486'; return false;"
-   style="display: none; align-items: center; gap: 8px; text-decoration: none; margin-top: 20px;"
-   rel="noopener noreferrer">
-  <img src="https://img.icons8.com/color/48/000000/whatsapp--v1.png"
-       alt="واتساب"
-       style="width: 24px; height: 24px;">
-  <span style="font-size: 16px; color: green;">تواصل مع المطور</span>
-</a>
+    <h1>THE BEST</h1>
+    <h2>ادخل كود الدخول</h2>
+    <input type="text" id="codeInput" placeholder="CODE">
+    <button onclick="verifyCode()">تسجيل الدخول</button>
+    <p id="status"></p>
+    <a id="contactDev" href="https://wa.me/201001257486" target="_blank">
+      <img src="https://img.icons8.com/color/48/000000/whatsapp--v1.png" alt="واتساب">
+      تواصل مع المطور
+    </a>
   </div>  <script>
   const firebaseConfig = {
     databaseURL: "https://website-83e14-default-rtdb.firebaseio.com/",
@@ -183,24 +174,15 @@
             status.textContent = "⛔ الكود منتهي الصلاحية.";
             status.className = "error";
           } else if (data.deviceId && data.deviceId !== deviceId) {
-            status.textContent = "⚠️ هذا الكود مفعل على جهاز آخر.";
+            status.textContent = "⚠ هذا الكود مفعل على جهاز آخر.";
             status.className = "error";
-          ...
-} else {
-    status.textContent = "✅ تم تسجيل الدخول بنجاح!";
-    status.className = "success";
-    db.ref("codes/" + key).update({ deviceId: deviceId });
-    localStorage.setItem("savedCode", code); // ✅ حفظ الكود
-
-    // 🆕 حفظ وقت بداية الاشتراك إذا مش موجود
-    if (!localStorage.getItem("student_subscription_start")) {
-        localStorage.setItem("student_subscription_start", Date.now());
-    }
-
-    console.log("✅ سيتم التحويل الآن...");
-    window.location.href = "home.html";
-}
-...
+          } else {
+            status.textContent = "✅ تم تسجيل الدخول بنجاح!";
+            status.className = "success";
+            db.ref("codes/" + key).update({ deviceId: deviceId });
+            localStorage.setItem("savedCode", code); // ✅ حفظ الكود
+            // window.location.href = "home.html";
+          }
         }
       });
 
@@ -224,8 +206,7 @@
             // ✅ دخول تلقائي
             document.getElementById("status").textContent = "✅ تم تسجيل الدخول تلقائياً.";
             document.getElementById("status").className = "success";
-            console.log("✅ سيتم التحويل الآن...");
-window.location.href = "home.html";;
+            // window.location.href = "home.html";
           }
         }
       });
