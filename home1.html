@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>الموقع في الصيانة</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+      color: #ffd700;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+    }
+    .container {
+      background: rgba(255, 215, 0, 0.1);
+      padding: 40px 60px;
+      border-radius: 15px;
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+      max-width: 400px;
+      width: 90%;
+    }
+    h1 {
+      font-size: 48px;
+      margin-bottom: 15px;
+      letter-spacing: 2px;
+    }
+    p {
+      font-size: 20px;
+      margin-bottom: 25px;
+      line-height: 1.5;
+      color: #fff3b0;
+    }
+    .icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.7; }
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main" aria-labelledby="maintenance-title" aria-describedby="maintenance-desc">
+    <div class="icon" aria-hidden="true">🛠</div>
+    <h1 id="maintenance-title">التطبيق في الصيانة</h1>
+    <p id="maintenance-desc">
+      نحن نعمل على تحسين المنصه ليكون أفضل لك.<br />
+      شكرًا لصبرك وتفهمك، الرجاء العودة لاحقًا.
+    </p>
+    <div class="footer">© جميع الحقوق محفوظة - منصة THE BEST - 2025</div>
+  </div>
+</body>
+</html>
