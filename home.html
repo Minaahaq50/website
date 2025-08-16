@@ -217,7 +217,7 @@
         box.innerHTML = `
           <div class="video-title">${video.title || 'فيديو بدون عنوان'}</div>
           <div class="video-teacher">المدرس: ${video.teacher || 'غير معروف'}</div>
-          <video controls>
+          <video controls poster="${video.imageUrl || ''}">
             <source src="${video.url}" type="video/mp4">
             متصفحك لا يدعم تشغيل الفيديو.
           </video>
@@ -246,10 +246,11 @@
       allVideos = [];
       for (let key in data) {
         allVideos.push({
-          url: data[key].url,  // تأكد أن هذا الرابط مباشر من Google Drive
+          url: data[key].url,
           subject: data[key].subject || '',
           title: data[key].title || '',
-          teacher: data[key].teacher || 'مدرس غير معروف'
+          teacher: data[key].teacher || 'مدرس غير معروف',
+          imageUrl: data[key].imageUrl || ''   // ✨ اضفنا الصورة هنا
         });
       }
 
@@ -258,4 +259,4 @@
     });
   </script>
 </body>
-</html>
+  </html>
