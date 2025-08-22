@@ -151,6 +151,25 @@
       font-size: 14px;
       margin-top: 40px;
     }
+    #login-box {
+      text-align: center;
+      margin: 20px;
+    }
+    #studentCode {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      margin-left: 10px;
+    }
+    #loginBtn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      background: #ffd700;
+      color: #1a1a1a;
+      font-weight: bold;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -163,6 +182,12 @@
     </section>
     <div id="expired-msg">🚫 تم انتهاء الاشتراك 🚫</div>
   </header>
+
+  <!-- ✅ إدخال الكود -->
+  <div id="login-box">
+    <input type="text" id="studentCode" placeholder="ادخل كود الاشتراك">
+    <button id="loginBtn">دخول</button>
+  </div>
 
   <div class="filter-bar">
     <button onclick="filterVideos('إنجليزي')">E</button>
@@ -218,15 +243,43 @@
     let selectedSubject = null;
     let selectedTeacher = null;
 
-    // ✅ جلب تاريخ الانتهاء من Firebase
-    const studentID = localStorage.getItem("studentID") || "-OYD52kDzWdgKH5B22yr"; 
-    const studentRef = ref(db, `students/${studentID}`);
-    onValue(studentRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data && data.expire) {
-        startCountdown(data.expire); // timestamp جاهز
+    // ✅ تشغيل بالضغط على زر الدخول
+    document.getElementById("loginBtn").addEventListener("click", loginWithCode);
+
+    function loginWithCode() {
+      const code = document.getElementById("studentCode").value.trim();
+      if (!code) {
+        alert("⚠️ من فضلك ادخل كود الاشتراك");
+        return;
       }
-    });
+
+      // نخزن الكود
+      localStorage.setItem("studentCode", code);
+
+      const codeRef = ref(db, `codes/${code}/expire`);
+      onValue(codeRef, (snapshot) => {
+        const expireValue = snapshot.val();
+        if (expireValue) {
+          startCountdown(expireValue);
+          document.getElementById("login-box").innerHTML = "✅ تم تسجيل الدخول بنجاح";
+        } else {
+          alert("❌ الكود غير صحيح أو لا يحتوي على تاريخ انتهاء");
+        }
+      });
+    }
+
+    // ✅ لو الكود محفوظ قبل كده
+    const savedCode = localStorage.getItem("studentCode");
+    if (savedCode) {
+      const codeRef = ref(db, `codes/${savedCode}/expire`);
+      onValue(codeRef, (snapshot) => {
+        const expireValue = snapshot.val();
+        if (expireValue) {
+          startCountdown(expireValue);
+          document.getElementById("login-box").innerHTML = "✅ تم تسجيل الدخول بنجاح";
+        }
+      });
+    }
 
     function startCountdown(endTimestamp) {
       const end = parseInt(endTimestamp);
