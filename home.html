@@ -116,6 +116,14 @@
           startCountdown(expireValue);
           document.getElementById("login-box").innerHTML = "✅ تم تسجيل الدخول بنجاح";
           isLoggedIn = true;
+
+          // ✅ عرض الفيديوهات مباشرة بعد تسجيل الدخول
+          if (allVideos.length > 0) {
+            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقت جيدا</div>';
+            document.querySelector(".filter-bar").style.display = "flex";
+          } else {
+            renderLoginRequired();
+          }
         } else {
           alert("❌ الكود غير صحيح أو لا يحتوي على تاريخ انتهاء");
           localStorage.removeItem("studentCode");
@@ -125,15 +133,21 @@
       });
     }
 
+    // ✅ التحقق من الكود عند تحميل الصفحة
     const savedCode = localStorage.getItem("studentCode");
     if (savedCode) {
       const codeRef = ref(db, `codes/${savedCode}/expire`);
       onValue(codeRef, (snapshot) => {
         const expireValue = snapshot.val();
-        if (expireValue) {
+        const now = Date.now();
+        if (expireValue && now <= parseInt(expireValue)) {
           startCountdown(expireValue);
           document.getElementById("login-box").innerHTML = "✅ تم تسجيل الدخول بنجاح";
           isLoggedIn = true;
+          if (allVideos.length > 0) {
+            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقت جيدا</div>';
+            document.querySelector(".filter-bar").style.display = "flex";
+          } else renderLoginRequired();
         } else {
           localStorage.removeItem("studentCode");
           isLoggedIn = false;
@@ -229,8 +243,10 @@
       const data = snapshot.val();
       allVideos = [];
       for (let key in data) allVideos.push({ url: data[key].url, subject: data[key].subject || '', title: data[key].title || '', teacher: data[key].teacher || 'مدرس غير معروف', imageUrl: data[key].imageUrl || '' });
-      if (isLoggedIn) { videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقت جيدا</div>'; document.querySelector(".filter-bar").style.display = "flex"; }
-      else renderLoginRequired();
+      if (isLoggedIn) {
+        videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقت جيدا</div>';
+        document.querySelector(".filter-bar").style.display = "flex";
+      } else renderLoginRequired();
       teachersFilter.innerHTML = '';
     });
   </script>
