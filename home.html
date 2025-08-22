@@ -201,8 +201,8 @@
   <div id="teachers-filter"></div>
 
   <main id="videos-container">
-    <div class="loading" style="text-align:center; font-size:18px; color:#ffd700;">
-      مرحبا بك في منصه الصف الثالث الثانوي العام منصه THE BEST.
+    <div style="text-align:center; font-size:18px; color:red;">
+      🚫 يجب كتابة كود الاشتراك الخاص بك لتفعيل الفيديوهات 🚫
     </div>
   </main>
 
@@ -242,8 +242,8 @@
     let allVideos = [];
     let selectedSubject = null;
     let selectedTeacher = null;
+    let isLoggedIn = false;
 
-    // ✅ تشغيل بالضغط على زر الدخول
     document.getElementById("loginBtn").addEventListener("click", loginWithCode);
 
     function loginWithCode() {
@@ -253,7 +253,6 @@
         return;
       }
 
-      // نخزن الكود
       localStorage.setItem("studentCode", code);
 
       const codeRef = ref(db, `codes/${code}/expire`);
@@ -262,13 +261,16 @@
         if (expireValue) {
           startCountdown(expireValue);
           document.getElementById("login-box").innerHTML = "✅ تم تسجيل الدخول بنجاح";
+          isLoggedIn = true;
+          renderWelcome();
         } else {
           alert("❌ الكود غير صحيح أو لا يحتوي على تاريخ انتهاء");
+          isLoggedIn = false;
+          renderLoginRequired();
         }
       });
     }
 
-    // ✅ لو الكود محفوظ قبل كده
     const savedCode = localStorage.getItem("studentCode");
     if (savedCode) {
       const codeRef = ref(db, `codes/${savedCode}/expire`);
@@ -277,8 +279,15 @@
         if (expireValue) {
           startCountdown(expireValue);
           document.getElementById("login-box").innerHTML = "✅ تم تسجيل الدخول بنجاح";
+          isLoggedIn = true;
+          renderWelcome();
+        } else {
+          isLoggedIn = false;
+          renderLoginRequired();
         }
       });
+    } else {
+      renderLoginRequired();
     }
 
     function startCountdown(endTimestamp) {
@@ -292,6 +301,8 @@
           clearInterval(interval);
           countdownBox.style.display = "none";
           expiredMsg.style.display = "block";
+          isLoggedIn = false;
+          renderLoginRequired();
           return;
         }
 
@@ -307,7 +318,21 @@
       }, 1000);
     }
 
+    function renderLoginRequired() {
+      videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:red;">🚫 يجب كتابة كود الاشتراك الخاص بك لتفعيل الفيديوهات 🚫</div>';
+      teachersFilter.innerHTML = '';
+    }
+
+    function renderWelcome() {
+      videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر، نتمني لك وقتًا ممتعًا 🎉</div>';
+      teachersFilter.innerHTML = '';
+    }
+
     function renderTeachers(subject) {
+      if (!isLoggedIn) {
+        renderLoginRequired();
+        return;
+      }
       teachersFilter.innerHTML = '';
       selectedTeacher = null;
 
@@ -338,6 +363,10 @@
     }
 
     function renderVideos(subject, teacher = null) {
+      if (!isLoggedIn) {
+        renderLoginRequired();
+        return;
+      }
       videosContainer.innerHTML = '';
       selectedSubject = subject;
 
@@ -368,6 +397,10 @@
     }
 
     window.filterVideos = (subject) => {
+      if (!isLoggedIn) {
+        renderLoginRequired();
+        return;
+      }
       if (subject === 'all') {
         videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اضغط علي اسم الماده للحصول علي الفيديوهات.</div>';
         teachersFilter.innerHTML = '';
@@ -394,9 +427,11 @@
           imageUrl: data[key].imageUrl || ''
         });
       }
-
-      videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقت جيدا</div>';
-      teachersFilter.innerHTML = '';
+      if (!isLoggedIn) {
+        renderLoginRequired();
+      } else {
+        renderWelcome();
+      }
     });
   </script>
 </body>
