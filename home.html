@@ -31,6 +31,31 @@
     #login-box { text-align: center; margin: 20px; }
     #studentCode { padding: 8px 12px; border-radius: 8px; border: 1px solid #444; margin-left: 10px; }
     #loginBtn { padding: 8px 16px; border-radius: 8px; border: none; background: #ffd700; color: #1a1a1a; font-weight: bold; cursor: pointer; }
+
+    /* ✅ تصميم نافذة الرسالة */
+    .modal {
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center; align-items: center;
+      z-index: 9999;
+    }
+    .modal-content {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 10px;
+      color: #ffd700;
+      text-align: center;
+      min-width: 280px;
+      box-shadow: 0 0 15px rgba(255,215,0,0.5);
+    }
+    .modal-content h3 { margin: 0 0 10px 0; color: #ff4d4d; }
+    .modal-content button {
+      margin-top: 10px; padding: 8px 16px;
+      border: none; border-radius: 8px;
+      background: #ffd700; color: #1a1a1a;
+      font-weight: bold; cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -70,6 +95,15 @@
     جميع الحقوق محفوظة © منصة THE BEST - 2025
   </footer>
 
+  <!-- ✅ نافذة الرسالة -->
+  <div class="modal" id="customModal">
+    <div class="modal-content">
+      <h3 id="modalTitle">تنبيه</h3>
+      <p id="modalMessage"></p>
+      <button onclick="closeMessage()">موافق</button>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
@@ -106,7 +140,7 @@
 
     function loginWithCode() {
       const code = document.getElementById("studentCode").value.trim();
-      if (!code) { alert("⚠️ من فضلك ادخل كود الاشتراك"); return; }
+      if (!code) { showMessage("⚠️ من فضلك ادخل كود الاشتراك"); return; }
       localStorage.setItem("studentCode", code);
 
       const codeRef = ref(db, `codes/${code}/expire`);
@@ -117,7 +151,6 @@
           document.getElementById("login-box").innerHTML = "✅ تم تسجيل الدخول بنجاح";
           isLoggedIn = true;
 
-          // ✅ عرض الفيديوهات مباشرة بعد تسجيل الدخول
           if (allVideos.length > 0) {
             videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقت جيدا</div>';
             document.querySelector(".filter-bar").style.display = "flex";
@@ -125,7 +158,7 @@
             renderLoginRequired();
           }
         } else {
-          alert("❌ الكود غير صحيح أو لا يحتوي على تاريخ انتهاء");
+          showMessage("❌ الكود غير صحيح أو لا يحتوي على تاريخ انتهاء");
           localStorage.removeItem("studentCode");
           isLoggedIn = false;
           renderLoginRequired();
@@ -249,6 +282,8 @@
       } else renderLoginRequired();
       teachersFilter.innerHTML = '';
     });
-  </script>
-</body>
-</html>
+
+    // ✅ دوال الرسالة
+    function showMessage(message, title = "تنبيه") {
+      document.getElementById("modalTitle").innerText = title;
+      document.getElementById
