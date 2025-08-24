@@ -27,7 +27,7 @@
     #videos-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding: 20px; }
     .video-box { background-color: #1a1a1a; padding: 10px; border-radius: 12px; box-shadow: 0 0 10px rgba(255, 215, 0, 0.1); transition: transform 0.2s ease-in-out, box-shadow 0.2s; }
     .video-box:hover { transform: translateY(-5px); box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
-    video { width: 100%; height: 250px; border-radius: 10px; background-color: #000; }
+    video, iframe { width: 100%; height: 250px; border-radius: 10px; background-color: #000; }
     .video-title { margin: 10px 0 6px 0; font-size: 18px; color: #ffd700; text-align: center; }
     .video-teacher { text-align: center; font-size: 14px; margin-bottom: 6px; color: #bbb; }
     footer { background-color: #1a1a1a; padding: 20px; text-align: center; color: #888; font-size: 14px; margin-top: 40px; }
@@ -36,7 +36,7 @@
     #studentCode { padding: 8px 12px; border-radius: 8px; border: 1px solid #444; margin-left: 10px; }
     #loginBtn { padding: 8px 16px; border-radius: 8px; border: none; background: #ffd700; color: #1a1a1a; font-weight: bold; cursor: pointer; }
 
-    /* ✅ الرسالة المنبثقة الاحترافية */
+    /* الرسالة المنبثقة */
     #messageBox {
       position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 9999;
       background: rgba(0,0,0,0.55);
@@ -86,7 +86,7 @@
 
   <footer>جميع الحقوق محفوظة © منصة THE BEST - 2025</footer>
 
-  <!-- ✅ الرسالة المنبثقة -->
+  <!-- الرسالة المنبثقة -->
   <div id="messageBox"><div class="card"></div></div>
 
   <script type="module">
@@ -121,7 +121,7 @@
     let selectedTeacher = null;
     let isLoggedIn = false;
 
-    // ✅ رسالة احترافية
+    /* ====== رسائل منبثقة ====== */
     function showMessage(msg, type="success", duration=2000){
       const box = document.getElementById('messageBox');
       const card = box.querySelector('.card');
@@ -132,7 +132,7 @@
       showMessage._t = setTimeout(()=>{ box.style.display='none'; }, duration);
     }
 
-    // زر الدخول
+    /* ====== تسجيل الدخول ====== */
     document.getElementById('loginBtn').addEventListener('click', loginWithCode);
     document.getElementById('studentCode').addEventListener('keydown', e=>{
       if(e.key === 'Enter') loginWithCode();
@@ -167,7 +167,7 @@
       }, { onlyOnce: true });
     }
 
-    // ✅ تحقق تلقائي عند الفتح
+    // تحقق تلقائي عند الفتح
     const savedCode = localStorage.getItem('studentCode');
     if (savedCode){
       const codeRef = ref(db, `codes/${savedCode}/expire`);
@@ -193,6 +193,7 @@
       }, { onlyOnce: true });
     }
 
+    /* ====== العداد ====== */
     function startCountdown(endTimestamp){
       const end = parseInt(endTimestamp);
       const interval = setInterval(()=>{
@@ -233,6 +234,7 @@
       }, 1000);
     }
 
+    /* ====== واجهات افتراضية ====== */
     function renderLoginRequired(){
       videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:red;">❌ يجب إدخال كود الاشتراك الخاص بك لتفعيل الفيديوهات</div>';
       teachersFilter.innerHTML = '';
@@ -268,6 +270,46 @@
       });
     }
 
+    /* ====== كشف اليوتيوب وتحويله لِـ iframe ====== */
+    function getYouTubeId(url){
+      try{
+        const u = new URL(url);
+        const host = u.hostname.replace('www.', '');
+        // youtu.be/<id>
+        if (host.includes('youtu.be')) {
+          const id = u.pathname.split('/')[1];
+          return id || null;
+        }
+        // youtube(-nocookie).com/*
+        if (host.includes('youtube.com') || host.includes('youtube-nocookie.com') || host.includes('m.youtube.com')) {
+          // /watch?v=ID
+          if (u.pathname === '/watch') {
+            return u.searchParams.get('v');
+          }
+          // /embed/ID  أو /shorts/ID أو /live/ID
+          const parts = u.pathname.split('/').filter(Boolean);
+          if (parts[0] === 'embed' && parts[1]) return parts[1];
+          if (parts[0] === 'shorts' && parts[1]) return parts[1];
+          if (parts[0] === 'live' && parts[1]) return parts[1];
+        }
+      }catch(e){ /* ignore */ }
+      return null;
+    }
+
+    function buildYouTubeEmbed(url){
+      const id = getYouTubeId(url);
+      if (!id) return null;
+      // إعدادات مريحة للطالب
+      const params = new URLSearchParams({
+        rel: '0',
+        modestbranding: '1',
+        controls: '1',
+        playsinline: '1'
+      });
+      return `https://www.youtube.com/embed/${id}?${params.toString()}`;
+    }
+
+    /* ====== عرض الفيديوهات ====== */
     function renderVideos(subject, teacher=null){
       if(!isLoggedIn){ renderLoginRequired(); return; }
       videosContainer.innerHTML = '';
@@ -284,19 +326,39 @@
       filtered.forEach(video=>{
         const box = document.createElement('div');
         box.className = 'video-box';
+
+        // لو الرابط يوتيوب -> iframe | غير كده -> video tag
+        let videoContent = "";
+        const embedUrl = buildYouTubeEmbed(video.url || '');
+        if (embedUrl){
+          videoContent = `
+            <iframe
+              src="${embedUrl}"
+              title="${(video.title || 'YouTube Video').replace(/"/g,'&quot;')}"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin">
+            </iframe>`;
+        } else {
+          videoContent = `
+            <video controls poster="${video.imageUrl || ''}">
+              <source src="${video.url}" type="video/mp4">
+              متصفحك لا يدعم تشغيل الفيديو.
+            </video>`;
+        }
+
         box.innerHTML = `
           <div class="video-title">${video.title || 'فيديو بدون عنوان'}</div>
           <div class="video-teacher">المدرس: ${video.teacher || 'غير معروف'}</div>
-          <video controls poster="${video.imageUrl || ''}">
-            <source src="${video.url}" type="video/mp4">
-            متصفحك لا يدعم تشغيل الفيديو.
-          </video>
+          ${videoContent}
         `;
         videosContainer.appendChild(box);
       });
     }
 
-    // متاح للزرار
+    // متاح للأزرار
     window.filterVideos = (subject)=>{
       if(!isLoggedIn){ renderLoginRequired(); return; }
       if (subject === 'all'){
@@ -312,7 +374,7 @@
       videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اختر مدرس لعرض الفيديوهات.</div>';
     };
 
-    // تحميل الفيديوهات من Realtime Database
+    /* ====== تحميل الفيديوهات من قاعدة البيانات ====== */
     const videosRef = ref(db, 'videos');
     onValue(videosRef, (snapshot)=>{
       const data = snapshot.val() || {};
@@ -333,4 +395,4 @@
     });
   </script>
 </body>
-</html>
+      </html>
