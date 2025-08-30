@@ -59,13 +59,14 @@
     #videoModal .modal-controls button { background:none; border:1px solid #333; padding:8px 12px; border-radius:8px; cursor:pointer; color:#ffd700; }
     #videoModal .modal-controls button:hover { background:#222; color:#fff; }
     
-    .video-rotated {
+    /* التدوير على iframe مش على modal-wrap */
+#videoModal iframe.video-rotated {
   transform: rotate(90deg);
   transform-origin: center center;
   width: 100vh !important;
   height: 100vw !important;
   transition: all 0.5s ease;
-}
+                 }
   </style>
 </head>
 <body>
@@ -157,35 +158,25 @@
     const prevBtn         = document.getElementById('prevVideo');
     const fullscreenBtn   = document.getElementById('fullscreenBtn');
   
-    let rotated = false;
-
-fullscreenBtn.addEventListener('click', ()=>{
-  const wrap = document.querySelector('#videoModal .modal-wrap');
-  if(!wrap) return;
+    fullscreenBtn.addEventListener('click', ()=>{
+  const iframe = document.getElementById('videoFrame');
+  if(!iframe) return;
 
   // تدوير الفيديو
   if(!rotated){ 
-    wrap.classList.add("video-rotated"); 
+    iframe.classList.add("video-rotated"); 
     rotated = true; 
   } else { 
-    wrap.classList.remove("video-rotated"); 
+    iframe.classList.remove("video-rotated"); 
     rotated = false; 
   }
 
-  // تفعيل fullscreen
+  // تفعيل fullscreen على نفس iframe أو اللفافة
+  const wrap = document.querySelector('#videoModal .modal-wrap');
   if (wrap.requestFullscreen) wrap.requestFullscreen();
   else if (wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
   else if (wrap.msRequestFullscreen) wrap.msRequestFullscreen();
 });
-
-    let allVideos = [];
-    let selectedSubject = null;
-    let selectedTeacher = null;
-    let isLoggedIn = false;
-
-    let currentVideos = []; // المجموعة الحالية عند فتح المودال (filtered)
-    let currentIndex = 0;
-
     /* ===== أدوات مساعدة لليوتيوب ===== */
     const isYouTubeUrl = (url='') => /youtu\.be|youtube\.com/.test(url);
     function getYouTubeId(url=''){
