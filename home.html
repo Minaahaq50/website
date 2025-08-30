@@ -134,9 +134,7 @@
 
     // زر الدخول
     document.getElementById('loginBtn').addEventListener('click', loginWithCode);
-    document.getElementById('studentCode').addEventListener('keydown', e=>{
-      if(e.key === 'Enter') loginWithCode();
-    });
+    document.getElementById('studentCode').addEventListener('keydown', e=>{ if(e.key === 'Enter') loginWithCode(); });
 
     function loginWithCode(){
       const code = document.getElementById('studentCode').value.trim();
@@ -146,14 +144,14 @@
       const codeRef = ref(db, `codes/${code}/expire`);
       onValue(codeRef, (snapshot)=>{
         const expireValue = snapshot.val();
-        const now = Date.now();
+        const now = Date.now(); // احصل على التاريخ الحالي بشكل دقيق
         if (expireValue && now <= parseInt(expireValue)) {
-          startCountdown(expireValue);
+          startCountdown(expireValue); // بدء العد التنازلي عند صلاحية الكود
           document.getElementById('login-box').innerHTML = "✅ تم تسجيل الدخول بنجاح";
-          showMessage("✅ تم تسجيل الدخول بنجاح","success");
+          showMessage("✅ تم تسجيل الدخول بنجاح", "success");
           isLoggedIn = true;
           if (allVideos.length > 0) {
-            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقت جيدا</div>';
+            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقتا ممتعا</div>';
             document.querySelector('.filter-bar').style.display = 'flex';
           } else {
             renderLoginRequired();
@@ -167,7 +165,7 @@
       }, { onlyOnce: true });
     }
 
-    // ✅ تحقق تلقائي عند الفتح
+    // تحقق تلقائي عند الفتح
     const savedCode = localStorage.getItem('studentCode');
     if (savedCode){
       const codeRef = ref(db, `codes/${savedCode}/expire`);
@@ -180,7 +178,7 @@
           showMessage("✅ تم تسجيل الدخول بنجاح","success");
           isLoggedIn = true;
           if (allVideos.length > 0) {
-            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقت جيدا</div>';
+            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقتا ممتعا</div>';
             document.querySelector('.filter-bar').style.display = 'flex';
           } else {
             renderLoginRequired();
