@@ -160,22 +160,19 @@
     let rotated = false;
 
 fullscreenBtn.addEventListener('click', ()=>{
+fullscreenBtn.addEventListener('click', ()=>{
   const iframe = document.getElementById('videoFrame');
   if(!iframe) return;
 
-  // تدوير الفيديو نفسه
-  if(!rotated){ 
-    iframe.classList.add("video-rotated"); 
-    rotated = true; 
-  } else { 
-    iframe.classList.remove("video-rotated"); 
-    rotated = false; 
-  }
+  // تبديل حالة التدوير
+  iframe.classList.toggle("video-rotated");
+  rotated = iframe.classList.contains("video-rotated");
 
-  // تفعيل fullscreen
-  if (iframe.requestFullscreen) iframe.requestFullscreen();
-  else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
-  else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
+  // تشغيل fullscreen للمودال نفسه (مش iframe فقط)
+  const wrap = document.querySelector('#videoModal .modal-wrap');
+  if (wrap.requestFullscreen) wrap.requestFullscreen();
+  else if (wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
+  else if (wrap.msRequestFullscreen) wrap.msRequestFullscreen();
 });
 
     let allVideos = [];
@@ -498,14 +495,7 @@ fullscreenBtn.addEventListener('click', ()=>{
       openVideo(currentIndex);
     });
 
-    fullscreenBtn.addEventListener('click', ()=>{
-      // نحاول عمل fullscreen للعنصر الذي يحتوي iframe (modal-wrap)
-      const wrap = document.querySelector('#videoModal .modal-wrap');
-      if (!wrap) return;
-      if (wrap.requestFullscreen) wrap.requestFullscreen();
-      else if (wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
-      else if (wrap.msRequestFullscreen) wrap.msRequestFullscreen();
-    });
+    
 
     // إغلاق بالمفتاح ESC
     document.addEventListener('keydown', (e)=>{
