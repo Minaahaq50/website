@@ -27,7 +27,10 @@
     #videos-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding: 20px; }
     .video-box { background-color: #1a1a1a; padding: 10px; border-radius: 12px; box-shadow: 0 0 10px rgba(255, 215, 0, 0.1); transition: transform 0.2s ease-in-out, box-shadow 0.2s; }
     .video-box:hover { transform: translateY(-5px); box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
-    video { width: 100%; height: 250px; border-radius: 10px; background-color: #000; }
+    iframe { width: 100%; height: 250px; border-radius: 10px; background-color: #000; transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease; }
+    .zoomed { transform: scale(1.5); }
+    .fullscreen { transform: rotate(90deg); }
+
     .video-title { margin: 10px 0 6px 0; font-size: 18px; color: #ffd700; text-align: center; }
     .video-teacher { text-align: center; font-size: 14px; margin-bottom: 6px; color: #bbb; }
     footer { background-color: #1a1a1a; padding: 20px; text-align: center; color: #888; font-size: 14px; margin-top: 40px; }
@@ -144,14 +147,14 @@
       const codeRef = ref(db, `codes/${code}/expire`);
       onValue(codeRef, (snapshot)=>{
         const expireValue = snapshot.val();
-        const now = Date.now(); // احصل على التاريخ الحالي بشكل دقيق
+        const now = Date.now();
         if (expireValue && now <= parseInt(expireValue)) {
-          startCountdown(expireValue); // بدء العد التنازلي عند صلاحية الكود
+          startCountdown(expireValue);
           document.getElementById('login-box').innerHTML = "✅ تم تسجيل الدخول بنجاح";
-          showMessage("✅ تم تسجيل الدخول بنجاح", "success");
+          showMessage("✅ تم تسجيل الدخول بنجاح","success");
           isLoggedIn = true;
           if (allVideos.length > 0) {
-            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقتا ممتعا</div>';
+            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقت جيدا</div>';
             document.querySelector('.filter-bar').style.display = 'flex';
           } else {
             renderLoginRequired();
@@ -165,65 +168,24 @@
       }, { onlyOnce: true });
     }
 
-    // تحقق تلقائي عند الفتح
-    const savedCode = localStorage.getItem('studentCode');
-    if (savedCode){
-      const codeRef = ref(db, `codes/${savedCode}/expire`);
-      onValue(codeRef, (snapshot)=>{
-        const expireValue = snapshot.val();
-        const now = Date.now();
-        if (expireValue && now <= parseInt(expireValue)) {
-          startCountdown(expireValue);
-          document.getElementById('login-box').innerHTML = "✅ تم تسجيل الدخول بنجاح";
-          showMessage("✅ تم تسجيل الدخول بنجاح","success");
-          isLoggedIn = true;
-          if (allVideos.length > 0) {
-            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقتا ممتعا</div>';
-            document.querySelector('.filter-bar').style.display = 'flex';
-          } else {
-            renderLoginRequired();
-          }
-        } else {
-          localStorage.removeItem('studentCode');
-          isLoggedIn = false;
-          renderLoginRequired();
-        }
-      }, { onlyOnce: true });
-    }
-
     function startCountdown(endTimestamp){
       const end = parseInt(endTimestamp);
       const interval = setInterval(()=>{
         const now = Date.now();
         const distance = end - now;
-
         if (distance <= 0){
           clearInterval(interval);
           countdownBox.style.display = 'none';
           expiredMsg.style.display = 'block';
           isLoggedIn = false;
           localStorage.removeItem('studentCode');
-
-          document.getElementById('login-box').innerHTML = `
-            <input type="text" id="studentCode" placeholder="ادخل كود الاشتراك" />
-            <button id="loginBtn">دخول</button>
-          `;
-          document.getElementById('loginBtn').addEventListener('click', loginWithCode);
-          document.getElementById('studentCode').addEventListener('keydown', e=>{
-            if(e.key === 'Enter') loginWithCode();
-          });
-
-          videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">❌ يجب إدخال كود اشتراك صالح لتفعيل الفيديوهات</div>';
-          teachersFilter.innerHTML = '';
-          document.querySelector('.filter-bar').style.display = 'none';
-          return;
+          renderLoginRequired();
         }
 
         const days    = Math.floor(distance / (1000*60*60*24));
         const hours   = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
         const minutes = Math.floor((distance % (1000*60*60)) / (1000*60));
         const seconds = Math.floor((distance % (1000*60)) / 1000);
-
         daysEl.textContent    = days;
         hoursEl.textContent   = hours;
         minutesEl.textContent = minutes;
@@ -253,10 +215,10 @@
         return;
       }
 
-      teachersSet.forEach(teacher=>{
+      teachersSet.forEach(teacher=> {
         const btn = document.createElement('button');
         btn.textContent = teacher;
-        btn.onclick = ()=>{
+        btn.onclick = ()=> {
           selectedTeacher = teacher;
           [...teachersFilter.children].forEach(c=>c.classList.remove('active'));
           btn.classList.add('active');
@@ -270,7 +232,6 @@
       if(!isLoggedIn){ renderLoginRequired(); return; }
       videosContainer.innerHTML = '';
       selectedSubject = subject;
-
       let filtered = allVideos.filter(v => (v.subject || '').trim() === subject);
       if (teacher) filtered = filtered.filter(v => ((v.teacher || 'مدرس غير معروف').trim() === teacher));
 
@@ -279,23 +240,20 @@
         return;
       }
 
-      filtered.forEach(video=>{
+      filtered.forEach(video=> {
         const box = document.createElement('div');
         box.className = 'video-box';
         box.innerHTML = `
           <div class="video-title">${video.title || 'فيديو بدون عنوان'}</div>
           <div class="video-teacher">المدرس: ${video.teacher || 'غير معروف'}</div>
-          <video controls poster="${video.imageUrl || ''}" id="videoElement">
-            <source src="${video.url}" type="video/mp4">
-            متصفحك لا يدعم تشغيل الفيديو.
-          </video>
+          <iframe src="https://www.youtube.com/embed/${video.url}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         `;
         videosContainer.appendChild(box);
       });
     }
 
     // متاح للزرار
-    window.filterVideos = (subject)=>{
+    window.filterVideos = (subject)=> {
       if(!isLoggedIn){ renderLoginRequired(); return; }
       if (subject === 'all'){
         videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اضغط علي اسم المادة للحصول على الفيديوهات.</div>';
@@ -312,7 +270,7 @@
 
     // تحميل الفيديوهات من Realtime Database
     const videosRef = ref(db, 'videos');
-    onValue(videosRef, (snapshot)=>{
+    onValue(videosRef, (snapshot)=> {
       const data = snapshot.val() || {};
       allVideos = Object.keys(data).map(k => ({
         url: data[k].url,
