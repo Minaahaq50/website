@@ -59,24 +59,12 @@
     #videoModal .modal-controls button { background:none; border:1px solid #333; padding:8px 12px; border-radius:8px; cursor:pointer; color:#ffd700; }
     #videoModal .modal-controls button:hover { background:#222; color:#fff; }
     
-
-//* الفيديو */
-#videoModal iframe {
-  width:100%;
-  height:100%;
-  border:0;
-  background:#000;
-  transition: transform 0.5s ease;
-  object-fit:cover; /* يتمدد ويملى الشاشة حتى لو يقص */
-}
-
-/* عند التدوير */
-#videoModal iframe.video-rotated {
+    .video-rotated {
   transform: rotate(90deg);
   transform-origin: center center;
   width: 100vh !important;
   height: 100vw !important;
-  object-fit:cover; /* عشان يملى الشاشة */
+  transition: all 0.5s ease;
 }
   </style>
 </head>
@@ -170,16 +158,21 @@
     const fullscreenBtn   = document.getElementById('fullscreenBtn');
   
     let rotated = false;
+
 fullscreenBtn.addEventListener('click', ()=>{
-  const iframe = document.getElementById('videoFrame');
-  if(!iframe) return;
-
-  // تبديل حالة التدوير
-  iframe.classList.toggle("video-rotated");
-  rotated = iframe.classList.contains("video-rotated");
-
-  // تشغيل fullscreen للمودال نفسه (مش iframe فقط)
   const wrap = document.querySelector('#videoModal .modal-wrap');
+  if(!wrap) return;
+
+  // تدوير الفيديو
+  if(!rotated){ 
+    wrap.classList.add("video-rotated"); 
+    rotated = true; 
+  } else { 
+    wrap.classList.remove("video-rotated"); 
+    rotated = false; 
+  }
+
+  // تفعيل fullscreen
   if (wrap.requestFullscreen) wrap.requestFullscreen();
   else if (wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
   else if (wrap.msRequestFullscreen) wrap.msRequestFullscreen();
@@ -505,7 +498,14 @@ fullscreenBtn.addEventListener('click', ()=>{
       openVideo(currentIndex);
     });
 
-    
+    fullscreenBtn.addEventListener('click', ()=>{
+      // نحاول عمل fullscreen للعنصر الذي يحتوي iframe (modal-wrap)
+      const wrap = document.querySelector('#videoModal .modal-wrap');
+      if (!wrap) return;
+      if (wrap.requestFullscreen) wrap.requestFullscreen();
+      else if (wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
+      else if (wrap.msRequestFullscreen) wrap.msRequestFullscreen();
+    });
 
     // إغلاق بالمفتاح ESC
     document.addEventListener('keydown', (e)=>{
@@ -521,4 +521,4 @@ fullscreenBtn.addEventListener('click', ()=>{
 
   </script>
 </body>
-  </html>
+</html>
