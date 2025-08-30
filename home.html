@@ -30,8 +30,8 @@
     .video-title { margin: 10px 0 6px 0; font-size: 18px; color: #ffd700; text-align: center; }
     .video-teacher { text-align: center; font-size: 14px; margin-bottom: 10px; color: #bbb; }
 
-    .thumb { position:relative; cursor:pointer; border-radius:10px; overflow:hidden; background:#000; }
-    .thumb img { width:100%; display:block; }
+    .thumb { position:relative; cursor:pointer; border-radius:10px; overflow:hidden; background:#000; height:200px; display:flex; align-items:center; justify-content:center; }
+    .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
     .thumb .play-btn {
       position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
       font-size:50px; color:#ffd700; text-shadow:0 0 10px rgba(0,0,0,.9);
@@ -51,20 +51,13 @@
     #messageBox.error .card{ border-color:#ff4444; color:#ff4444; }
     @keyframes fadeIn { from{opacity:0; transform:translateY(-8px)} to{opacity:1; transform:translateY(0)} }
 
-    /* تحكم اليوتيوب */
-    .video-wrapper { position: relative; overflow: hidden; border-radius: 10px; background: #000; }
-    .video-wrapper iframe { width: 100%; height: 250px; border-radius: 10px; transition: transform 0.25s ease; transform-origin: center center; display: block; border: 0; }
-    .video-wrapper .controls { margin-top: 8px; text-align: center; }
-    .video-wrapper .controls button {
-      margin: 0 5px; padding: 6px 12px;
-      border: none; border-radius: 6px;
-      background: #2b2b2b; color: #ffd700;
-      cursor: pointer; font-weight: bold;
-    }
-    .video-wrapper .controls button:hover { background: #444; }
-
-    /* عندما يكون العنصر داخل full-screen يمكننا تغيير بعض الخصائص لو احتجت */
-    .video-wrapper.fullscreen iframe { width: 100vw; height: 100vh; border-radius: 0; }
+    /* مودال الفيديو */
+    #videoModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:20px; }
+    #videoModal .modal-wrap { width:100%; max-width:980px; background:#000; border-radius:12px; overflow:hidden; }
+    #videoModal iframe { width:100%; height:560px; border:0; display:block; background:#000; }
+    #videoModal .modal-controls { display:flex; justify-content:space-between; align-items:center; padding:10px; background:#111; color:#ffd700; font-weight:bold; }
+    #videoModal .modal-controls button { background:none; border:1px solid #333; padding:8px 12px; border-radius:8px; cursor:pointer; color:#ffd700; }
+    #videoModal .modal-controls button:hover { background:#222; color:#fff; }
   </style>
 </head>
 <body>
@@ -105,6 +98,23 @@
   <!-- الرسالة المنبثقة -->
   <div id="messageBox"><div class="card"></div></div>
 
+  <!-- مودال الفيديو -->
+  <div id="videoModal" aria-hidden="true">
+    <div class="modal-wrap">
+      <iframe id="videoFrame" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
+      <div class="modal-controls">
+        <div>
+          <button id="prevVideo">⏮ السابق</button>
+          <button id="nextVideo">⏭ التالي</button>
+        </div>
+        <div>
+          <button id="fullscreenBtn">⛶ تكبير</button>
+          <button id="closeModal" style="color:#ff6b6b;">✖ إغلاق</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
@@ -132,23 +142,34 @@
     const minutesEl       = document.getElementById('minutes');
     const secondsEl       = document.getElementById('seconds');
 
+    const videoModal      = document.getElementById('videoModal');
+    const videoFrame      = document.getElementById('videoFrame');
+    const closeModalBtn   = document.getElementById('closeModal');
+    const nextBtn         = document.getElementById('nextVideo');
+    const prevBtn         = document.getElementById('prevVideo');
+    const fullscreenBtn   = document.getElementById('fullscreenBtn');
+
     let allVideos = [];
     let selectedSubject = null;
     let selectedTeacher = null;
     let isLoggedIn = false;
+
+    let currentVideos = []; // المجموعة الحالية عند فتح المودال (filtered)
+    let currentIndex = 0;
 
     /* ===== أدوات مساعدة لليوتيوب ===== */
     const isYouTubeUrl = (url='') => /youtu\.be|youtube\.com/.test(url);
     function getYouTubeId(url=''){
       try{
         const u = new URL(url);
-        if (u.hostname.includes('youtu.be')) return u.pathname.replace('/','');
+        if (u.hostname.includes('youtu.be')) return u.pathname.replace('/','').replace('/','');
         if (u.searchParams.get('v')) return u.searchParams.get('v');
+        // روابط embed
         const m = u.pathname.match(/\/embed\/([^/?#]+)/);
         return m ? m[1] : '';
       }catch{ return ''; }
     }
-    const getYTThumb = (id) => id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+    const getYTThumb = (id) => id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : 'https://via.placeholder.com/300x200?text=VIDEO';
 
     /* ===== الرسالة المنبثقة ===== */
     function showMessage(msg, type="success", duration=2000){
@@ -161,19 +182,30 @@
       showMessage._t = setTimeout(()=>{ box.style.display='none'; }, duration);
     }
 
-    /* ===== ربط أزرار الدخول (بطريقة آمنة لمنع listeners مزدوجة) ===== */
+    /* ===== الدخول بالكود ===== */
     function attachLoginHandlers(){
       const btn = document.getElementById('loginBtn');
       const input = document.getElementById('studentCode');
-      if (btn) btn.onclick = loginWithCode;
-      if (input) input.onkeydown = (e)=>{ if(e.key === 'Enter') loginWithCode(); };
+      // إزالة أي مستمعين مكرّرين قبل الإضافة
+      if (btn) {
+        btn.replaceWith(btn.cloneNode(true));
+      }
+      if (input) {
+        input.replaceWith(input.cloneNode(true));
+      }
+      // إعادة استدعار بعد الاستبدال
+      const newBtn = document.getElementById('loginBtn');
+      const newInput = document.getElementById('studentCode');
+      if (newBtn && newInput){
+        newBtn.addEventListener('click', loginWithCode);
+        newInput.addEventListener('keydown', e=>{ if(e.key==='Enter') loginWithCode(); });
+      }
     }
     attachLoginHandlers();
 
-    /* ===== تسجيل الدخول بالكود ===== */
     function loginWithCode(){
-      const inputEl = document.getElementById('studentCode');
-      const code = inputEl ? inputEl.value.trim() : '';
+      const codeInput = document.getElementById('studentCode');
+      const code = codeInput ? codeInput.value.trim() : '';
       if(!code){ showMessage("⚠ من فضلك ادخل كود الاشتراك","error"); return; }
       localStorage.setItem('studentCode', code);
 
@@ -187,8 +219,7 @@
           showMessage("✅ تم تسجيل الدخول بنجاح","success");
           isLoggedIn = true;
           document.querySelector('.filter-bar').style.display = 'flex';
-          videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اختر مادة لبدء التصفح.</div>';
-          teachersFilter.innerHTML = '';
+          videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اختر مادة لبدء التصفّح.</div>';
         } else {
           showMessage("❌ الكود غير صحيح أو منتهي","error");
           localStorage.removeItem('studentCode');
@@ -210,8 +241,7 @@
           document.getElementById('login-box').innerHTML = "✅ تم تسجيل الدخول بنجاح";
           isLoggedIn = true;
           document.querySelector('.filter-bar').style.display = 'flex';
-          videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اختر مادة لبدء التصفح.</div>';
-          teachersFilter.innerHTML = '';
+          videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اختر مادة لبدء التصفّح.</div>';
         } else {
           localStorage.removeItem('studentCode');
           isLoggedIn = false;
@@ -223,8 +253,6 @@
     /* ===== العداد التنازلي ===== */
     function startCountdown(endTimestamp){
       const end = parseInt(endTimestamp);
-      countdownBox.style.display = 'flex';
-      expiredMsg.style.display = 'none';
       const interval = setInterval(()=>{
         const now = Date.now();
         const distance = end - now;
@@ -236,6 +264,7 @@
           isLoggedIn = false;
           localStorage.removeItem('studentCode');
 
+          // إعادة إظهار صندوق الدخول
           document.getElementById('login-box').innerHTML = `
             <input type="text" id="studentCode" placeholder="ادخل كود الاشتراك" />
             <button id="loginBtn">دخول</button>
@@ -290,73 +319,12 @@
           selectedTeacher = teacher;
           [...teachersFilter.children].forEach(c=>c.classList.remove('active'));
           btn.classList.add('active');
-          renderVideos(subject, selectedTeacher);
+          renderVideos(selectedSubject, selectedTeacher);
         };
         teachersFilter.appendChild(btn);
       });
     }
 
-    /* ===== دوال تحكم لكل video-wrapper (zoom/rotate/fullscreen/reset) ===== */
-    function setTransform(wrapper){
-      const iframe = wrapper.querySelector('iframe');
-      if (!iframe) return;
-      const zoom = Number(wrapper.dataset.zoom || 1);
-      const rot = Number(wrapper.dataset.rot || 0);
-      iframe.style.transform = `scale(${zoom}) rotate(${rot}deg)`;
-    }
-
-    function zoomInBtn(btn){
-      const wrapper = btn.closest('.video-wrapper');
-      if(!wrapper) return;
-      let z = Number(wrapper.dataset.zoom || 1);
-      z = Math.min(2.5, +(z + 0.1).toFixed(2));
-      wrapper.dataset.zoom = z;
-      setTransform(wrapper);
-    }
-    function zoomOutBtn(btn){
-      const wrapper = btn.closest('.video-wrapper');
-      if(!wrapper) return;
-      let z = Number(wrapper.dataset.zoom || 1);
-      z = Math.max(0.5, +(z - 0.1).toFixed(2));
-      wrapper.dataset.zoom = z;
-      setTransform(wrapper);
-    }
-    function rotateBtn(btn){
-      const wrapper = btn.closest('.video-wrapper');
-      if(!wrapper) return;
-      let r = Number(wrapper.dataset.rot || 0);
-      r = (r + 90) % 360;
-      wrapper.dataset.rot = r;
-      setTransform(wrapper);
-    }
-    async function toggleFullscreenBtn(btn){
-      const wrapper = btn.closest('.video-wrapper');
-      if(!wrapper) return;
-      try{
-        if (document.fullscreenElement) {
-          await document.exitFullscreen();
-          wrapper.classList.remove('fullscreen');
-        } else {
-          if (wrapper.requestFullscreen) await wrapper.requestFullscreen();
-          wrapper.classList.add('fullscreen');
-        }
-      }catch(e){
-        console.warn('fullscreen error', e);
-      }
-    }
-    function resetVideoBtn(btn){
-      const wrapper = btn.closest('.video-wrapper');
-      if(!wrapper) return;
-      wrapper.dataset.zoom = '1';
-      wrapper.dataset.rot = '0';
-      setTransform(wrapper);
-      // إذا كانت في وضع كامل الشاشة نخرج
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(()=>{});
-      }
-    }
-
-    /* ===== عرض الفيديوهات (داخل الصفحة) ===== */
     function renderVideos(subject, teacher=null){
       if(!isLoggedIn){ renderLoginRequired(); return; }
       videosContainer.innerHTML = '';
@@ -370,92 +338,43 @@
         return;
       }
 
-      filtered.forEach(video=>{
+      // نعرض الفيديوهات المفلترة
+      filtered.forEach((video, idx)=>{
         const box = document.createElement('div');
         box.className = 'video-box';
 
-        const titleEl = document.createElement('div');
-        titleEl.className = 'video-title';
-        titleEl.textContent = video.title || 'فيديو بدون عنوان';
-
-        const teacherEl = document.createElement('div');
-        teacherEl.className = 'video-teacher';
-        teacherEl.textContent = 'المدرس: ' + (video.teacher || 'غير معروف');
-
-        box.appendChild(titleEl);
-        box.appendChild(teacherEl);
-
         const youtube = isYouTubeUrl(video.url);
         const ytId = youtube ? getYouTubeId(video.url) : '';
-        const thumb = video.imageUrl || (youtube ? getYTThumb(ytId) : '');
+        const thumb = video.imageUrl || (youtube ? getYTThumb(ytId) : getYTThumb(''));
 
+        box.innerHTML = `
+          <div class="video-title">${video.title || 'فيديو بدون عنوان'}</div>
+          <div class="video-teacher">المدرس: ${video.teacher || 'غير معروف'}</div>
+          ${youtube
+            ? `
+              <div class="thumb" data-idx="${idx}">
+                <img src="${thumb}" alt="thumbnail">
+                <div class="play-btn">▶</div>
+              </div>
+            `
+            : `
+              <video controls poster="${thumb}" style="width:100%; height:250px; border-radius:10px; background:#000;">
+                <source src="${video.url}" type="video/mp4">
+                متصفحك لا يدعم تشغيل الفيديو.
+              </video>
+            `
+          }
+        `;
+
+        // إذا ضغط المستخدم على صورة اليوتيوب نفتح المودال ونمرر قائمة الفيديوهات المفلترة
         if (youtube){
-          const thumbDiv = document.createElement('div');
-          thumbDiv.className = 'thumb';
-          const img = document.createElement('img');
-          img.src = thumb || 'https://via.placeholder.com/300x200?text=YouTube';
-          img.alt = 'thumbnail';
-          const play = document.createElement('div');
-          play.className = 'play-btn';
-          play.textContent = '▶';
-          thumbDiv.appendChild(img);
-          thumbDiv.appendChild(play);
-
-          thumbDiv.onclick = ()=>{
-            // استبدال المصغرة بإطار الفيديو + أدوات التحكم
-            const wrapper = document.createElement('div');
-            wrapper.className = 'video-wrapper';
-            wrapper.dataset.zoom = '1';
-            wrapper.dataset.rot = '0';
-
-            const iframe = document.createElement('iframe');
-            iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1`;
-            iframe.setAttribute('frameborder','0');
-            iframe.setAttribute('allow','accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen');
-            iframe.setAttribute('allowfullscreen','');
-            iframe.style.transformOrigin = 'center center';
-
-            wrapper.appendChild(iframe);
-
-            const controls = document.createElement('div');
-            controls.className = 'controls';
-
-            const btnZoomIn = document.createElement('button'); btnZoomIn.textContent = '➕ تكبير'; btnZoomIn.onclick = ()=>zoomInBtn(btnZoomIn);
-            const btnZoomOut = document.createElement('button'); btnZoomOut.textContent = '➖ تصغير'; btnZoomOut.onclick = ()=>zoomOutBtn(btnZoomOut);
-            const btnRotate = document.createElement('button'); btnRotate.textContent = '🔄 قلب'; btnRotate.onclick = ()=>rotateBtn(btnRotate);
-            const btnFS = document.createElement('button'); btnFS.textContent = '⛶ ملء الشاشة'; btnFS.onclick = ()=>toggleFullscreenBtn(btnFS);
-            const btnReset = document.createElement('button'); btnReset.textContent = '⛔ إعادة ضبط'; btnReset.onclick = ()=>resetVideoBtn(btnReset);
-
-            controls.appendChild(btnZoomIn);
-            controls.appendChild(btnZoomOut);
-            controls.appendChild(btnRotate);
-            controls.appendChild(btnFS);
-            controls.appendChild(btnReset);
-
-            wrapper.appendChild(controls);
-
-            thumbDiv.replaceWith(wrapper);
-          };
-
-          box.appendChild(thumbDiv);
-        } else {
-          // ملف mp4 أو رابط مباشر
-          const videoEl = document.createElement('video');
-          videoEl.controls = true;
-          videoEl.style.width = '100%';
-          videoEl.style.height = '250px';
-          videoEl.style.borderRadius = '10px';
-          if (thumb) videoEl.poster = thumb;
-
-          const source = document.createElement('source');
-          source.src = video.url;
-          source.type = 'video/mp4';
-          videoEl.appendChild(source);
-
-          const fallback = document.createElement('div');
-          fallback.textContent = 'متصفحك لا يدعم تشغيل الفيديو.';
-          box.appendChild(videoEl);
-          box.appendChild(fallback);
+          const thumbEl = box.querySelector('.thumb');
+          thumbEl.addEventListener('click', ()=>{
+            // ملاحظة: نمرر نسخة من المصفوفة لكي لا تتأثر لو تغير المقبس الخارجي
+            currentVideos = filtered.slice();
+            currentIndex = parseInt(thumbEl.getAttribute('data-idx'), 10);
+            openVideo(currentIndex);
+          });
         }
 
         videosContainer.appendChild(box);
@@ -489,8 +408,9 @@
           const id = getYouTubeId(v.url);
           imageUrl = getYTThumb(id);
         }
+        if (!imageUrl) imageUrl = getYTThumb('');
         return {
-          url: v.url || '',
+          url: v.url,
           subject: v.subject || '',
           title: v.title || '',
           teacher: v.teacher || 'مدرس غير معروف',
@@ -498,17 +418,78 @@
         };
       });
 
+      // إذا المستخدم مسجّل، نعرض رسالة لبدء التصفح، وإلا نظهر رسالة الدخول
       if (isLoggedIn){
+        videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اختر مادة لبدء التصفّح.</div>';
         document.querySelector('.filter-bar').style.display = 'flex';
-        videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اختر مادة لبدء التصفح.</div>';
       } else {
         renderLoginRequired();
       }
       teachersFilter.innerHTML = '';
-    }, (err)=>{
-      console.error('firebase videos read error', err);
-      videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">حدث خطأ أثناء تحميل الفيديوهات.</div>';
     });
+
+    /* ===== المودال (فتح/اغلاق/تكبير/تصفح) ===== */
+    function openVideo(index){
+      if (!currentVideos || currentVideos.length === 0) return;
+      currentIndex = index;
+      const video = currentVideos[currentIndex];
+      if (!video) return;
+      // نستخدم وضع الـ embed للـ youtube
+      if (isYouTubeUrl(video.url)){
+        const id = getYouTubeId(video.url);
+        videoFrame.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+      } else {
+        // فيديو مباشر (mp4) -> نستخدم ملف html بسيط داخل iframe لتشغيله، أو يمكن تغيير لصيغة <video> داخل المودال
+        videoFrame.src = video.url;
+      }
+      videoModal.style.display = 'flex';
+      videoModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeVideo(){
+      videoModal.style.display = 'none';
+      videoModal.setAttribute('aria-hidden', 'true');
+      // أوقف الفيديو بإزالة src
+      videoFrame.src = '';
+      currentVideos = [];
+      currentIndex = 0;
+    }
+
+    closeModalBtn.addEventListener('click', closeVideo);
+
+    nextBtn.addEventListener('click', ()=>{
+      if (!currentVideos || currentVideos.length === 0) return;
+      currentIndex = (currentIndex + 1) % currentVideos.length;
+      openVideo(currentIndex);
+    });
+
+    prevBtn.addEventListener('click', ()=>{
+      if (!currentVideos || currentVideos.length === 0) return;
+      currentIndex = (currentIndex - 1 + currentVideos.length) % currentVideos.length;
+      openVideo(currentIndex);
+    });
+
+    fullscreenBtn.addEventListener('click', ()=>{
+      // نحاول عمل fullscreen للعنصر الذي يحتوي iframe (modal-wrap)
+      const wrap = document.querySelector('#videoModal .modal-wrap');
+      if (!wrap) return;
+      if (wrap.requestFullscreen) wrap.requestFullscreen();
+      else if (wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
+      else if (wrap.msRequestFullscreen) wrap.msRequestFullscreen();
+    });
+
+    // إغلاق بالمفتاح ESC
+    document.addEventListener('keydown', (e)=>{
+      if (e.key === 'Escape' && videoModal.style.display === 'flex') {
+        closeVideo();
+      }
+    });
+
+    // إذا ضغط المستخدم خارج المحتوى -> إغلاق
+    videoModal.addEventListener('click', (e)=>{
+      if (e.target === videoModal) closeVideo();
+    });
+
   </script>
 </body>
 </html>
