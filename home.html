@@ -27,26 +27,25 @@
     #videos-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding: 20px; }
     .video-box { background-color: #1a1a1a; padding: 10px; border-radius: 12px; box-shadow: 0 0 10px rgba(255, 215, 0, 0.1); transition: transform 0.2s ease-in-out, box-shadow 0.2s; }
     .video-box:hover { transform: translateY(-5px); box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+    video { width: 100%; height: 250px; border-radius: 10px; background-color: #000; }
     .video-title { margin: 10px 0 6px 0; font-size: 18px; color: #ffd700; text-align: center; }
-    .video-teacher { text-align: center; font-size: 14px; margin-bottom: 10px; color: #bbb; }
-
-    .thumb { position:relative; cursor:pointer; border-radius:10px; overflow:hidden; background:#000; }
-    .thumb img { width:100%; display:block; }
-    .thumb .play-btn {
-      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-      font-size:50px; color:#ffd700; text-shadow:0 0 10px rgba(0,0,0,.9);
-      user-select:none;
-    }
-
+    .video-teacher { text-align: center; font-size: 14px; margin-bottom: 6px; color: #bbb; }
     footer { background-color: #1a1a1a; padding: 20px; text-align: center; color: #888; font-size: 14px; margin-top: 40px; }
 
     #login-box { text-align: center; margin: 20px; }
     #studentCode { padding: 8px 12px; border-radius: 8px; border: 1px solid #444; margin-left: 10px; }
     #loginBtn { padding: 8px 16px; border-radius: 8px; border: none; background: #ffd700; color: #1a1a1a; font-weight: bold; cursor: pointer; }
 
-    /* الرسالة المنبثقة */
-    #messageBox { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 9999; background: rgba(0,0,0,0.55); }
-    #messageBox .card { background:#1a1a1a; border-radius:12px; padding:20px 26px; font-weight:bold; text-align:center; min-width:260px; box-shadow: 0 0 20px rgba(0,0,0,0.6); animation: fadeIn .25s ease-out; border:2px solid #333; color:#fff; }
+    /* ✅ الرسالة المنبثقة الاحترافية */
+    #messageBox {
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 9999;
+      background: rgba(0,0,0,0.55);
+    }
+    #messageBox .card {
+      background:#1a1a1a; border-radius:12px; padding:20px 26px; font-weight:bold; text-align:center; min-width:260px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6); animation: fadeIn .25s ease-out;
+      border:2px solid #333; color:#fff;
+    }
     #messageBox.success .card{ border-color:#00ff88; color:#00ff88; }
     #messageBox.error .card{ border-color:#ff4444; color:#ff4444; }
     @keyframes fadeIn { from{opacity:0; transform:translateY(-8px)} to{opacity:1; transform:translateY(0)} }
@@ -69,7 +68,7 @@
   </div>
 
   <div class="filter-bar">
-    <button onclick="filterVideos('إنجليزي')">إنجليزي</button>
+    <button onclick="filterVideos('إنجليزي')">E</button>
     <button onclick="filterVideos('عربي')">عربي</button>
     <button onclick="filterVideos('فيزياء')">فيزياء</button>
     <button onclick="filterVideos('رياضيات')">رياضيات</button>
@@ -81,13 +80,13 @@
 
   <main id="videos-container">
     <div class="loading" style="text-align:center; font-size:18px; color:#ffd700;">
-      مرحبًا بك في منصة الصف الثالث الثانوي THE BEST.
+      مرحبا بك في منصه الصف الثالث الثانوي العام منصه THE BEST.
     </div>
   </main>
 
   <footer>جميع الحقوق محفوظة © منصة THE BEST - 2025</footer>
 
-  <!-- الرسالة المنبثقة -->
+  <!-- ✅ الرسالة المنبثقة -->
   <div id="messageBox"><div class="card"></div></div>
 
   <script type="module">
@@ -122,21 +121,7 @@
     let selectedTeacher = null;
     let isLoggedIn = false;
 
-    /* ===== أدوات مساعدة لليوتيوب ===== */
-    const isYouTubeUrl = (url='') => /youtu\.be|youtube\.com/.test(url);
-    function getYouTubeId(url=''){
-      try{
-        const u = new URL(url);
-        if (u.hostname.includes('youtu.be')) return u.pathname.replace('/','');
-        if (u.searchParams.get('v')) return u.searchParams.get('v');
-        // روابط embed
-        const m = u.pathname.match(/\/embed\/([^/?#]+)/);
-        return m ? m[1] : '';
-      }catch{ return ''; }
-    }
-    const getYTThumb = (id) => id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
-
-    /* ===== الرسالة المنبثقة ===== */
+    // ✅ رسالة احترافية
     function showMessage(msg, type="success", duration=2000){
       const box = document.getElementById('messageBox');
       const card = box.querySelector('.card');
@@ -147,20 +132,11 @@
       showMessage._t = setTimeout(()=>{ box.style.display='none'; }, duration);
     }
 
-    /* ===== الدخول بالكود ===== */
+    // زر الدخول
     document.getElementById('loginBtn').addEventListener('click', loginWithCode);
     document.getElementById('studentCode').addEventListener('keydown', e=>{
       if(e.key === 'Enter') loginWithCode();
     });
-
-    function attachLoginHandlers(){
-      const btn = document.getElementById('loginBtn');
-      const input = document.getElementById('studentCode');
-      if (btn && input){
-        btn.addEventListener('click', loginWithCode);
-        input.addEventListener('keydown', e=>{ if(e.key==='Enter') loginWithCode(); });
-      }
-    }
 
     function loginWithCode(){
       const code = document.getElementById('studentCode').value.trim();
@@ -177,7 +153,7 @@
           showMessage("✅ تم تسجيل الدخول بنجاح","success");
           isLoggedIn = true;
           if (allVideos.length > 0) {
-            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مدّة الاشتراك الخاصّة بك شهر. نتمنى لك وقتًا ممتعًا.</div>';
+            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقت جيدا</div>';
             document.querySelector('.filter-bar').style.display = 'flex';
           } else {
             renderLoginRequired();
@@ -191,7 +167,7 @@
       }, { onlyOnce: true });
     }
 
-    /* تحقق تلقائي عند الفتح */
+    // ✅ تحقق تلقائي عند الفتح
     const savedCode = localStorage.getItem('studentCode');
     if (savedCode){
       const codeRef = ref(db, `codes/${savedCode}/expire`);
@@ -201,9 +177,10 @@
         if (expireValue && now <= parseInt(expireValue)) {
           startCountdown(expireValue);
           document.getElementById('login-box').innerHTML = "✅ تم تسجيل الدخول بنجاح";
+          showMessage("✅ تم تسجيل الدخول بنجاح","success");
           isLoggedIn = true;
           if (allVideos.length > 0) {
-            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مدّة الاشتراك الخاصّة بك شهر. نتمنى لك وقتًا ممتعًا.</div>';
+            videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">مده الاشتراك الخاصه بك شهر نتمني لك وقت جيدا</div>';
             document.querySelector('.filter-bar').style.display = 'flex';
           } else {
             renderLoginRequired();
@@ -216,7 +193,6 @@
       }, { onlyOnce: true });
     }
 
-    /* ===== العداد التنازلي ===== */
     function startCountdown(endTimestamp){
       const end = parseInt(endTimestamp);
       const interval = setInterval(()=>{
@@ -230,12 +206,14 @@
           isLoggedIn = false;
           localStorage.removeItem('studentCode');
 
-          // إعادة إظهار صندوق الدخول
           document.getElementById('login-box').innerHTML = `
             <input type="text" id="studentCode" placeholder="ادخل كود الاشتراك" />
             <button id="loginBtn">دخول</button>
           `;
-          attachLoginHandlers();
+          document.getElementById('loginBtn').addEventListener('click', loginWithCode);
+          document.getElementById('studentCode').addEventListener('keydown', e=>{
+            if(e.key === 'Enter') loginWithCode();
+          });
 
           videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">❌ يجب إدخال كود اشتراك صالح لتفعيل الفيديوهات</div>';
           teachersFilter.innerHTML = '';
@@ -255,7 +233,6 @@
       }, 1000);
     }
 
-    /* ===== واجهات العرض ===== */
     function renderLoginRequired(){
       videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:red;">❌ يجب إدخال كود الاشتراك الخاص بك لتفعيل الفيديوهات</div>';
       teachersFilter.innerHTML = '';
@@ -274,7 +251,7 @@
       );
 
       if (teachersSet.size === 0){
-        teachersFilter.innerHTML = '<div style="text-align:center; color:#ffd700; font-size:18px;">لا يوجد مدرسون متاحون لهذه المادة.</div>';
+        teachersFilter.innerHTML = '<div style="text-align:center; color:#ffd700; font-size:18px;">لا يوجد مدرسين متاحين لهذه المادة.</div>';
         return;
       }
 
@@ -307,46 +284,23 @@
       filtered.forEach(video=>{
         const box = document.createElement('div');
         box.className = 'video-box';
-
-        const youtube = isYouTubeUrl(video.url);
-        const ytId = youtube ? getYouTubeId(video.url) : '';
-        const thumb = video.imageUrl || (youtube ? getYTThumb(ytId) : '');
-
         box.innerHTML = `
           <div class="video-title">${video.title || 'فيديو بدون عنوان'}</div>
           <div class="video-teacher">المدرس: ${video.teacher || 'غير معروف'}</div>
-          ${youtube
-            ? `
-              <div class="thumb" data-url="${video.url}">
-                <img src="${thumb || 'https://via.placeholder.com/300x200?text=YouTube'}" alt="thumbnail">
-                <div class="play-btn">▶</div>
-              </div>
-            `
-            : `
-              <video controls poster="${thumb || ''}" style="width:100%; height:250px; border-radius:10px; background:#000;">
-                <source src="${video.url}" type="video/mp4">
-                متصفحك لا يدعم تشغيل الفيديو.
-              </video>
-            `
-          }
+          <video controls poster="${video.imageUrl || ''}" id="videoElement">
+            <source src="${video.url}" type="video/mp4">
+            متصفحك لا يدعم تشغيل الفيديو.
+          </video>
         `;
-
-        if (youtube){
-          box.querySelector('.thumb').onclick = ()=>{
-            // فتح في تبويب جديد
-            window.open(video.url, '_blank');
-          };
-        }
-
         videosContainer.appendChild(box);
       });
     }
 
-    // متاح لأزرار المواد
+    // متاح للزرار
     window.filterVideos = (subject)=>{
       if(!isLoggedIn){ renderLoginRequired(); return; }
       if (subject === 'all'){
-        videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اضغط على اسم المادة للحصول على الفيديوهات.</div>';
+        videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اضغط علي اسم المادة للحصول على الفيديوهات.</div>';
         teachersFilter.innerHTML = '';
         selectedSubject = null;
         selectedTeacher = null;
@@ -355,37 +309,24 @@
       selectedSubject = subject;
       selectedTeacher = null;
       renderTeachers(subject);
-      videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اختر مدرسًا لعرض الفيديوهات.</div>';
+      videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اختر مدرس لعرض الفيديوهات.</div>';
     };
 
-    /* ===== تحميل الفيديوهات من Realtime Database ===== */
+    // تحميل الفيديوهات من Realtime Database
     const videosRef = ref(db, 'videos');
     onValue(videosRef, (snapshot)=>{
       const data = snapshot.val() || {};
-      allVideos = Object.keys(data).map(k => {
-        const v = data[k] || {};
-        // إن لم توجد صورة لليوتيوب، نحاول توليدها تلقائيًا
-        let imageUrl = v.imageUrl || '';
-        if (!imageUrl && isYouTubeUrl(v.url)){
-          const id = getYouTubeId(v.url);
-          imageUrl = getYTThumb(id);
-        }
-        return {
-          url: v.url,
-          subject: v.subject || '',
-          title: v.title || '',
-          teacher: v.teacher || 'مدرس غير معروف',
-          imageUrl
-        };
-      });
+      allVideos = Object.keys(data).map(k => ({
+        url: data[k].url,
+        subject: data[k].subject || '',
+        title: data[k].title || '',
+        teacher: data[k].teacher || 'مدرس غير معروف',
+        imageUrl: data[k].imageUrl || ''
+      }));
 
-      if (isLoggedIn){
-        videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">اختر مادة لبدء التصفّح.</div>';
-        document.querySelector('.filter-bar').style.display = 'flex';
-      } else {
-        renderLoginRequired();
+      if (isLoggedIn && selectedSubject) {
+        renderVideos(selectedSubject);
       }
-      teachersFilter.innerHTML = '';
     });
   </script>
 </body>
