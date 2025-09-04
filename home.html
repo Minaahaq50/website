@@ -244,7 +244,7 @@ fullscreenBtn.addEventListener('click', ()=>{
         const now = Date.now();
         if (expireValue && now <= parseInt(expireValue)) {
           startCountdown(expireValue);
-          document.getElementById('login-box').innerHTML = "✅ تم تسجيل الدخول بنجاح";
+          document.getElementById('login-box').innerHTML = "✅ تم تسجيل اشتراكك بنجاح";
           showMessage("✅ تم تسجيل الدخول بنجاح","success");
           isLoggedIn = true;
           document.querySelector('.filter-bar').style.display = 'flex';
