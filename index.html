@@ -131,15 +131,10 @@
   <script>
     // 🔹 إعداد Firebase
     const firebaseConfig = {
-    apiKey: "AIzaSyCdhj73cKJc2J2_tDHw2-89EemZx-EGMJQ",
-  authDomain: "alamer-526ff.firebaseapp.com",
-  databaseURL: "https://alamer-526ff-default-rtdb.firebaseio.com",
-  projectId: "alamer-526ff",
-  storageBucket: "alamer-526ff.firebasestorage.app",
-  messagingSenderId: "523879269039",
-  appId: "1:523879269039:web:634861aa34641bfebf8a5a",
-  measurementId: "G-4L48BTMLHB"
-};
+      databaseURL: "https://alamer-526ff-default-rtdb.firebaseio.com/",
+      // لازم تضيف باقي مفاتيح مشروعك هنا (apiKey, projectId, appId...)
+    };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
@@ -190,22 +185,9 @@
             if (data.expire <= now) {
               status.textContent = "⛔ الكود منتهي الصلاحية.";
               status.className = "error";
-            } } else if (data.deviceId && data.deviceId !== currentUid) {
-  // 👈 لو الكود قديم (deviceId عبارة عن أرقام)
-  if (/^\d+$/.test(String(data.deviceId))) {
-    // أول استخدام: نحدثه للـ UID الجديد
-    db.ref("codes/" + key).update({ deviceId: currentUid });
-    status.textContent = "✅ تم تسجيل الدخول وتحديث الكود للنسخة الجديدة.";
-    status.className = "success";
-    localStorage.setItem("savedCode", code);
-    window.location.href = "home.html";
-  } else {
-    // 👈 مستخدم فعلاً على UID آخر
-    status.textContent = "⚠ هذا الكود مفعل على جهاز آخر.";
-    status.className = "error";
-  }
-}
-
+            } else if (data.deviceId && data.deviceId !== currentUid) {
+              status.textContent = "⚠ هذا الكود مفعل على جهاز آخر.";
+              status.className = "error";
             } else {
               status.textContent = "✅ تم تسجيل الدخول بنجاح!";
               status.className = "success";
