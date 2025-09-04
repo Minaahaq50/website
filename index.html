@@ -13,126 +13,39 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
 
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Cairo', sans-serif;
-    }
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at top left, #141E30, #243B55);
-      overflow: hidden;
-      color: white;
-    }
-    .login-box {
-      background: rgba(0, 0, 0, 0.6);
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
-    }
-    .login-box h1 {
-      font-size: 36px;
-      margin-bottom: 10px;
-    }
-    .login-box h2 {
-      font-size: 20px;
-      margin-bottom: 20px;
-    }
-    .login-box input[type="text"] {
-      padding: 14px;
-      width: 100%;
-      border-radius: 12px;
-      border: none;
-      outline: none;
-      font-size: 18px;
-      text-align: center;
-      background: #111;
-      color: #fff;
-      margin-bottom: 15px;
-      box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-    }
-    .login-box input[type="text"]:focus {
-      box-shadow: 0 0 15px #00f5c4;
-    }
-    .login-box button {
-      width: 100%;
-      padding: 12px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(90deg, #00c6ff, #0072ff);
-      color: white;
-      cursor: pointer;
-      transition: all 0.4s ease;
-    }
-    .login-box button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 20px #00f5c4;
-    }
-    #status {
-      margin-top: 20px;
-      font-size: 18px;
-    }
-    .error { color: #ff4f4f; }
-    .success { color: #00f5c4; }
-
-    #contactDev {
-      margin-top: 15px;
-      display: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      background: linear-gradient(90deg, #25d366, #128c7e);
-      color: white;
-      text-decoration: none;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      justify-content: center;
-      box-shadow: 0 0 15px rgba(0,255,0,0.3);
-    }
-    #contactDev:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 20px #25d366;
-    }
-    #contactDev img {
-      width: 20px;
-      height: 20px;
-    }
+    * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+    body { margin:0; height:100vh; display:flex; align-items:center; justify-content:center; background: radial-gradient(circle at top left, #141E30, #243B55); color:white; }
+    .login-box { background: rgba(0,0,0,0.6); padding:40px; border-radius:20px; text-align:center; width:90%; max-width:400px; }
+    .login-box h1 { font-size:36px; margin-bottom:10px; }
+    .login-box h2 { font-size:20px; margin-bottom:20px; }
+    .login-box input[type="text"] { padding:14px; width:100%; border-radius:12px; border:none; outline:none; font-size:18px; text-align:center; background:#111; color:#fff; margin-bottom:15px; box-shadow:0 0 10px rgba(0,255,255,0.3); }
+    .login-box input[type="text"]:focus { box-shadow:0 0 15px #00f5c4; }
+    .login-box button { width:100%; padding:12px; font-size:18px; border:none; border-radius:8px; background: linear-gradient(90deg,#00c6ff,#0072ff); color:white; cursor:pointer; transition:all 0.4s ease; }
+    .login-box button:hover { transform:scale(1.05); box-shadow:0 0 20px #00f5c4; }
+    #status { margin-top:20px; font-size:18px; }
+    .error { color:#ff4f4f; }
+    .success { color:#00f5c4; }
   </style>
 </head>
 <body>
   <div class="login-box">
     <h1>THE BEST</h1>
     <h2>ادخل كود الدخول</h2>
-
     <input type="text" id="codeInput" placeholder="CODE">
     <button onclick="verifyCode()">تسجيل الدخول</button>
-
     <p id="status"></p>
-
-    <!-- زر معلوماتنا -->
-    <a id="contactDev" href="home2.html"
-       onclick="window.location.href='home2.html'; return false;"
-       rel="noopener noreferrer">
-      <img src="https://img.icons8.com/color/48/000000/info--v1.png"
-           alt="معلوماتنا"
-           style="width: 24px; height: 24px;">
-      <span style="font-size: 16px; color: green;">معلوماتنا</span>
-    </a>
   </div>
 
   <script>
-    // 🔹 إعداد Firebase
+    // إعداد Firebase
     const firebaseConfig = {
-      databaseURL: "https://alamer-526ff-default-rtdb.firebaseio.com/",
-      // لازم تضيف باقي مفاتيح مشروعك هنا (apiKey, projectId, appId...)
+      apiKey: "AIzaSyCdhj73cKJc2J2_tDHw2-89EemZx-EGMJQ",
+      authDomain: "alamer-526ff.firebaseapp.com",
+      databaseURL: "https://alamer-526ff-default-rtdb.firebaseio.com",
+      projectId: "alamer-526ff",
+      storageBucket: "alamer-526ff.appspot.com",
+      messagingSenderId: "523879269039",
+      appId: "1:523879269039:web:634861aa34641bfebf8a5a"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -141,40 +54,29 @@
 
     let currentUid = null;
 
-    // ✅ تسجيل دخول مجهول تلقائي
-    auth.signInAnonymously()
-      .then(() => {
-        console.log("✅ تسجيل دخول مجهول تم بنجاح");
-      })
-      .catch((error) => {
-        console.error("❌ خطأ في تسجيل الدخول المجهول:", error.message);
+    // استخدام UID ثابت لكل جهاز
+    let localUid = localStorage.getItem("localUid");
+    if (!localUid) {
+      // تسجيل مجهول مؤقت لحفظ UID
+      auth.signInAnonymously().then(res => {
+        localUid = res.user.uid;
+        localStorage.setItem("localUid", localUid);
+        currentUid = localUid;
       });
+    } else {
+      currentUid = localUid;
+    }
 
-    // ✅ تحديث uid عند تسجيل الدخول
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        currentUid = user.uid;
-        console.log("🔑 UID:", currentUid);
-
-        // دخول تلقائي لو فيه كود محفوظ
-        const savedCode = localStorage.getItem("savedCode");
-        if (savedCode) autoLogin(savedCode);
-      }
-    });
-
-    // ✅ التحقق من الكود
+    // التحقق من الكود
     function verifyCode() {
       const code = document.getElementById("codeInput").value.trim();
       const status = document.getElementById("status");
-      const contactBtn = document.getElementById("contactDev");
-
       status.textContent = "جارٍ التحقق...";
       status.className = "";
-      contactBtn.style.display = "none";
 
-      db.ref("codes").once("value", (snapshot) => {
+      db.ref("codes").once("value").then(snapshot => {
         let found = false;
-        snapshot.forEach((child) => {
+        snapshot.forEach(child => {
           const data = child.val();
           const key = child.key;
 
@@ -189,17 +91,17 @@
               status.textContent = "⚠ هذا الكود مفعل على جهاز آخر.";
               status.className = "error";
             } else {
-              status.textContent = "✅ تم تسجيل الدخول بنجاح!";
-              status.className = "success";
-
-              // ربط الكود بالـ UID
-              db.ref("codes/" + key).update({ deviceId: currentUid });
-
-              // حفظ الكود محليًا
-              localStorage.setItem("savedCode", code);
-
-              console.log("✅ سيتم التحويل الآن...");
-              window.location.href = "home.html";
+              // تحديث deviceId
+              db.ref("codes/" + key).update({ deviceId: currentUid }).then(() => {
+                status.textContent = "✅ تم تسجيل الدخول بنجاح!";
+                status.className = "success";
+                localStorage.setItem("savedCode", code);
+                setTimeout(() => { window.location.href = "home.html"; }, 1000);
+              }).catch(err => {
+                status.textContent = "❌ خطأ في التفعيل.";
+                status.className = "error";
+                console.error(err);
+              });
             }
           }
         });
@@ -207,28 +109,7 @@
         if (!found) {
           status.textContent = "❌ الكود غير صحيح.";
           status.className = "error";
-          contactBtn.style.display = "flex";
         }
-      });
-    }
-
-    // ✅ الدخول التلقائي بالكود المحفوظ
-    function autoLogin(savedCode) {
-      db.ref("codes").once("value", (snapshot) => {
-        snapshot.forEach((child) => {
-          const data = child.val();
-          const key = child.key;
-
-          if (data.code === savedCode && data.deviceId === currentUid) {
-            const now = Date.now();
-            if (data.expire > now) {
-              document.getElementById("status").textContent = "✅ تم تسجيل الدخول تلقائياً.";
-              document.getElementById("status").className = "success";
-              console.log("✅ سيتم التحويل الآن...");
-              window.location.href = "home.html";
-            }
-          }
-        });
       });
     }
   </script>
