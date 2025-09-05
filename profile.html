@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>ملفي الشخصي - THE BEST</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #1a1a1a;
+      padding: 20px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #ffd700;
+      box-shadow: 0 2px 10px rgba(255,215,0,0.3);
+    }
+    .profile-box {
+      max-width: 400px;
+      margin: 40px auto;
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(255,215,0,0.2);
+    }
+    .profile-box h2 {
+      text-align: center;
+      color: #ffd700;
+      margin-bottom: 20px;
+    }
+    .profile-info {
+      font-size: 16px;
+      line-height: 1.8;
+    }
+    .profile-info div {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #2b2b2b;
+      border-radius: 10px;
+      color: #ffd700;
+    }
+    .countdown {
+      text-align: center;
+      font-size: 18px;
+      margin-top: 15px;
+      padding: 12px;
+      background: #222;
+      border-radius: 10px;
+      color: #ff6b6b;
+      font-weight: bold;
+    }
+    .logout-btn {
+      display: block;
+      margin: 20px auto 0;
+      background: #ff4d4d;
+      color: #fff;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      transition: 0.3s;
+    }
+    .logout-btn:hover {
+      background: #e60000;
+    }
+  </style>
+</head>
+<body>
+  <header>الملف الشخصي</header>
+
+  <div class="profile-box">
+    <h2>بيانات الحساب</h2>
+    <div class="profile-info">
+      <div><b>الاسم:</b> <span id="studentName">--</span></div>
+      <div><b>رقم الهاتف:</b> <span id="studentPhone">--</span></div>
+      <div><b>تاريخ الموافقة:</b> <span id="approvedAt">--</span></div>
+      <div><b>تاريخ الانتهاء:</b> <span id="expiry">--</span></div>
+    </div>
+    <div class="countdown" id="countdown">--:--:--</div>
+    <button class="logout-btn" onclick="logout()">تسجيل خروج</button>
+  </div>
+
+  <script>
+    // 📌 Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdz_OsGPL5xEq-J72FCkuQezVMhU_FATo",
+      authDomain: "website-83e14.firebaseapp.com",
+      databaseURL: "https://website-83e14-default-rtdb.firebaseio.com",
+      projectId: "website-83e14",
+      storageBucket: "website-83e14.firebasestorage.app",
+      messagingSenderId: "994953388464",
+      appId: "1:994953388464:web:13890d9d1448c45061f675",
+      measurementId: "G-CTHDFE44WE"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 📌 جلب deviceId من localStorage
+    const deviceId = localStorage.getItem("deviceId");
+    if (!deviceId) {
+      alert("⚠ لم يتم العثور على جلسة دخول، من فضلك سجل دخول من جديد.");
+      window.location.href = "login.html"; 
+    }
+
+    // 📌 جلب بيانات الطالب من Firebase
+    db.ref("approvedStudents/" + deviceId).once("value").then(snapshot => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        document.getElementById("studentName").innerText = data.name || "--";
+        document.getElementById("studentPhone").innerText = data.phone || "--";
+        document.getElementById("approvedAt").innerText = new Date(data.approvedAt).toLocaleString("ar-EG");
+        document.getElementById("expiry").innerText = new Date(data.expiry).toLocaleString("ar-EG");
+
+        // ✅ تشغيل العداد التنازلي
+        startCountdown(data.expiry);
+      } else {
+        alert("⚠ لم يتم العثور على بيانات الحساب.");
+        window.location.href = "login.html";
+      }
+    });
+
+    // 📌 تشغيل العداد التنازلي
+    function startCountdown(expiryTime) {
+      const countdownEl = document.getElementById("countdown");
+      const timer = setInterval(() => {
+        const now = Date.now();
+        const distance = expiryTime - now;
+
+        if (distance <= 0) {
+          clearInterval(timer);
+          countdownEl.innerText = "انتهت الصلاحية!";
+          alert("⚠ انتهت صلاحية الكود. سيتم تسجيل خروجك.");
+          localStorage.removeItem("deviceId");
+          window.location.href = "login.html";
+          return;
+        }
+
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        countdownEl.innerText = `${hours.toString().padStart(2,"0")}:${minutes.toString().padStart(2,"0")}:${seconds.toString().padStart(2,"0")}`;
+      }, 1000);
+    }
+
+    // 📌 تسجيل خروج مع تحذير
+    function logout() {
+      if (confirm("⚠ تحذير: إذا قمت بتسجيل الخروج لن تتمكن من الدخول بنفس هذا الجهاز مرة أخرى. هل أنت متأكد؟")) {
+        localStorage.removeItem("deviceId");
+        alert("تم تسجيل الخروج بنجاح.");
+        window.location.href = "login.html";
+      }
+    }
+  </script>
+</body>
+                               </html>
