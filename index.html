@@ -89,9 +89,13 @@ function checkIfApproved(){
   if(!currentUid) return;
   db.ref("approvedStudents/"+currentUid).once("value")
     .then(snap=>{
-      if(snap.exists()){
-        localStorage.setItem("approved", "true");
-        window.location.href="home.html"; // تحويل تلقائي
+     if(snap.exists()){
+  localStorage.setItem("approved", "true");
+  window.location.href="home.html"; // تحويل تلقائي
+} else {
+  localStorage.removeItem("approved"); // لو مش موجود، نشيل العلامة
+}
+
       }
     }).catch(err=>{
       console.error("Error checking approval:", err);
