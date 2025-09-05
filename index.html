@@ -43,7 +43,7 @@ const firebaseConfig = {
   projectId: "alamer-526ff",
   storageBucket: "alamer-526ff.appspot.com",
   messagingSenderId: "523879269039",
-  appId: "1:523879269039:web:634861aa34641bfebf8a5"
+  appId: "1:523879269039:web:634861aa34641bfebf8a5a"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -69,7 +69,30 @@ function initAuth() {
         localStorage.setItem("localUid", currentUid);
         submitBtn.disabled = false;
         errorEl.textContent = "";
-        checkIfApproved();
+        console.log("تم تسجيل الدخول المجهول UID:", currentUid);
+
+        // ===== تحقق الموافقة من Firebase + deviceId =====
+        const currentDevice = navigator.userAgent || "unknown";
+        db.ref("approvedStudents/"+currentUid).once("value")
+          .then(snap=>{
+            if(snap.exists()){
+              const data = snap.val();
+              if(data.deviceId === currentDevice){
+                localStorage.setItem("approved","true");
+                window.location.href="home.html";
+              } else {
+                localStorage.removeItem("approved");
+                errorEl.textContent = "❌ تم تسجيل هذا الحساب من جهاز آخر أو تم حذفه.";
+              }
+            } else {
+              localStorage.removeItem("approved");
+            }
+          }).catch(err=>{
+            console.error(err);
+            localStorage.removeItem("approved");
+          });
+        // ===== نهاية التحقق =====
+
         checkExistingRequest();
       } else {
         throw new Error("لم يتم الحصول على UID.");
@@ -82,25 +105,6 @@ function initAuth() {
 }
 
 initAuth();
-
-// التحقق إذا الطالب مقبول مسبقًا
-function checkIfApproved(){
-  if(!currentUid) return;
-  db.ref("approvedStudents/"+currentUid).once("value")
-    .then(snap=> {
-      if(snap.exists()){
-        // تحقق من deviceId
-        const data = snap.val();
-        const currentDevice = navigator.userAgent || "unknown";
-        if(data.deviceId === currentDevice){
-          localStorage.setItem("approved", "true");
-          window.location.href="home.html";
-        } else {
-          errorEl.textContent = "❌ تم تسجيل هذا الحساب من جهاز آخر.";
-        }
-      }
-    }).catch(err=> console.error("Error checking approval:", err));
-}
 
 // التحقق من وجود طلب سابق
 function checkExistingRequest(){
@@ -122,7 +126,7 @@ function checkExistingRequest(){
 }
 
 // إرسال الطلب
-submitBtn.addEventListener("click", ()=> {
+submitBtn.addEventListener("click", ()=>{
   if(!currentUid){
     errorEl.textContent = "❌ UID غير موجود، لا يمكن إرسال الطلب.";
     return;
@@ -143,22 +147,21 @@ submitBtn.addEventListener("click", ()=> {
     return;
   }
 
-  const deviceId = navigator.userAgent || "unknown";
-
   // التحقق من الموافقة المسبقة
   db.ref("approvedStudents").orderByChild("phone").equalTo(phone).once("value")
     .then(snap2=>{
       if(snap2.exists()){
-        successEl.textContent = "✅ تم الموافقة مسبقًا على هذا الرقم.";
-        localStorage.setItem("approved","true");
-        setTimeout(()=>{ window.location.href="home.html"; },1000);
+        const dataKey = Object.keys(snap2.val())[0];
+        const deviceId = navigator.userAgent || "unknown";
+        db.ref("approvedStudents/"+dataKey).update({ deviceId }).then(()=>{
+          successEl.textContent = "✅ تم الموافقة مسبقًا على هذا الرقم.";
+          localStorage.setItem("approved","true");
+          setTimeout(()=>{ window.location.href="home.html"; },1000);
+        });
       } else {
-        // إرسال الطلب مع deviceId
+        // إرسال الطلب
         db.ref("pendingStudents/"+currentUid).set({
-          name,
-          phone,
-          deviceId,
-          timestamp:Date.now()
+          name, phone, timestamp:Date.now()
         }).then(()=>{
           successEl.textContent = "✅ تم إرسال طلبك، انتظر الموافقة.";
           deleteBtn.style.display = "block";
