@@ -26,13 +26,13 @@ button:hover { transform:scale(1.05); box-shadow:0 0 20px #00f5c4; }
 <body>
 
 <div class="container">
-<h1>THE BEST</h1>
-<input type="text" id="studentName" placeholder="الاسم الكامل">
-<input type="text" id="studentPhone" placeholder="رقم الهاتف">
-<button id="submitBtn" disabled>جارٍ الإعداد...</button>
-<button id="deleteBtn">حذف الطلب</button>
-<p id="error"></p>
-<p id="success"></p>
+  <h1>THE BEST</h1>
+  <input type="text" id="studentName" placeholder="الاسم الكامل">
+  <input type="text" id="studentPhone" placeholder="رقم الهاتف">
+  <button id="submitBtn" disabled>جارٍ الإعداد...</button>
+  <button id="deleteBtn">حذف الطلب</button>
+  <p id="error"></p>
+  <p id="success"></p>
 </div>
 
 <script>
@@ -71,6 +71,7 @@ function initAuth() {
         errorEl.textContent = "";
         checkIfApproved();
         checkExistingRequest();
+        listenForDeletion();
       } else {
         throw new Error("لم يتم الحصول على UID.");
       }
@@ -90,13 +91,30 @@ function checkIfApproved(){
     .then(snap=>{
       if(snap.exists()){
         localStorage.setItem("approved","true");
-        window.location.href="home.html"; // تحويل تلقائي
+        window.location.href="home.html"; 
       } else {
         localStorage.removeItem("approved");
       }
     }).catch(err=>{
       console.error("Error checking approval:", err);
+      localStorage.removeItem("approved");
     });
+}
+
+// مراقبة الحذف أو النقل
+function listenForDeletion(){
+  if(!currentUid) return;
+  db.ref("approvedStudents").orderByChild("deviceId").equalTo(currentUid).on("value", snap=>{
+    if(snap.exists()){
+      localStorage.setItem("approved","true");
+    } else {
+      if(localStorage.getItem("approved") === "true"){ 
+        localStorage.removeItem("approved");
+        alert("تم حذفك من النظام، يرجى إعادة التسجيل.");
+        location.reload();
+      }
+    }
+  });
 }
 
 // التحقق من وجود طلب سابق
@@ -145,17 +163,31 @@ submitBtn.addEventListener("click", ()=>{
     .then(snap2=>{
       if(snap2.exists()){
         const approvedKey = Object.keys(snap2.val())[0];
-        // إضافة deviceId
-        db.ref("approvedStudents/"+approvedKey).update({
-          deviceId: currentUid
-        });
+        const approvedData = snap2.val()[approvedKey];
+
+        // منع فتح الحساب من جهاز آخر
+        if(approvedData.deviceId && approvedData.deviceId !== currentUid){
+          errorEl.textContent = "❌ هذا الحساب مسجل من جهاز آخر.";
+          return;
+        }
+
+        // لو أول مرة يتم ربط الجهاز
+        if(!approvedData.deviceId){
+          db.ref("approvedStudents/"+approvedKey).update({
+            deviceId: currentUid
+          });
+        }
+
         successEl.textContent = "✅ تم الموافقة مسبقًا على هذا الرقم.";
         localStorage.setItem("approved","true");
         setTimeout(()=>{ window.location.href="home.html"; },1000);
       } else {
-        // إرسال الطلب
+        // إرسال طلب جديد
         db.ref("pendingStudents/"+currentUid).set({
-          name, phone, timestamp:Date.now()
+          name, 
+          phone, 
+          deviceId: currentUid, // ✅ تخزين الجهاز
+          timestamp: Date.now()
         }).then(()=>{
           successEl.textContent = "✅ تم إرسال طلبك، انتظر الموافقة.";
           deleteBtn.style.display = "block";
@@ -184,29 +216,6 @@ deleteBtn.addEventListener("click", ()=>{
       console.error(err);
     });
 });
-
-// عند إعادة الدخول، إذا تم القبول مسبقًا يتم التحويل مباشرة
-function checkIfApproved(){
-  if(!currentUid) return;
-  db.ref("approvedStudents").orderByChild("deviceId").equalTo(currentUid).once("value")
-    .then(snap=>{
-      if(snap.exists()){
-        localStorage.setItem("approved","true");
-        window.location.href="home.html";
-      } else {
-        localStorage.removeItem("approved"); // حذف العلامة لو مش موجود
-      }
-    }).catch(err=>{
-      console.error("Error checking approval:", err);
-      localStorage.removeItem("approved");
-    });
-}
-
-// إزالة هذا السطر لأنه يسبب التحويل التلقائي بدون تحقق
-// if(localStorage.getItem("approved")==="true"){
-//   window.location.href="home.html";
-// }
-
 </script>
 
 </body>
