@@ -111,12 +111,21 @@ function initAuth() {
 
 initAuth();
 
-// التحقق إذا الطالب مقبول مسبقًا
+// ✅ التحقق إذا الطالب مقبول مسبقًا مع انتهاء الكود
 function checkIfApproved(){
   if(!currentUid) return;
   db.ref("approvedStudents").orderByChild("deviceId").equalTo(currentUid).once("value")
     .then(snap=>{
       if(snap.exists()){
+        const key = Object.keys(snap.val())[0];
+        const data = snap.val()[key];
+
+        if(data.expiry && Date.now() > data.expiry){
+          showToast("❌ انتهت صلاحية الكود، يرجى إعادة التسجيل.", "error");
+          localStorage.removeItem("approved");
+          return;
+        }
+
         localStorage.setItem("approved","true");
         window.location.href="home.html"; 
       } else {
@@ -125,11 +134,21 @@ function checkIfApproved(){
     });
 }
 
-// مراقبة الحذف أو النقل
+// ✅ مراقبة الحذف أو انتهاء الكود
 function listenForDeletion(){
   if(!currentUid) return;
   db.ref("approvedStudents").orderByChild("deviceId").equalTo(currentUid).on("value", snap=>{
     if(snap.exists()){
+      const key = Object.keys(snap.val())[0];
+      const data = snap.val()[key];
+
+      if(data.expiry && Date.now() > data.expiry){
+        showToast("❌ انتهت صلاحية الكود، يرجى إعادة التسجيل.", "error");
+        localStorage.removeItem("approved");
+        setTimeout(()=>{ location.reload(); },1500);
+        return;
+      }
+
       localStorage.setItem("approved","true");
     } else {
       if(localStorage.getItem("approved") === "true"){ 
@@ -189,6 +208,11 @@ submitBtn.addEventListener("click", ()=>{
 
         if(!approvedData.deviceId){
           db.ref("approvedStudents/"+approvedKey).update({ deviceId: currentUid });
+        }
+
+        if(approvedData.expiry && Date.now() > approvedData.expiry){
+          showToast("❌ انتهت صلاحية الكود، يرجى إعادة التسجيل.", "error");
+          return;
         }
 
         showToast("✅ تم الموافقة مسبقًا على هذا الرقم.", "success");
