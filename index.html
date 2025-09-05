@@ -88,7 +88,7 @@ function showToast(message, type="success"){
 // تسجيل الدخول المجهول
 function initAuth() {
   submitBtn.disabled = true;
-  showToast("جارٍ الاتصال بـ Firebase...", "warning");
+  showToast("جارٍ الاتصال بـ server...", "warning");
 
   auth.signInAnonymously()
     .then(res => {
