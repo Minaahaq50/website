@@ -186,9 +186,27 @@ deleteBtn.addEventListener("click", ()=>{
 });
 
 // عند إعادة الدخول، إذا تم القبول مسبقًا يتم التحويل مباشرة
-if(localStorage.getItem("approved")==="true"){
-  window.location.href="home.html";
+function checkIfApproved(){
+  if(!currentUid) return;
+  db.ref("approvedStudents").orderByChild("deviceId").equalTo(currentUid).once("value")
+    .then(snap=>{
+      if(snap.exists()){
+        localStorage.setItem("approved","true");
+        window.location.href="home.html";
+      } else {
+        localStorage.removeItem("approved"); // حذف العلامة لو مش موجود
+      }
+    }).catch(err=>{
+      console.error("Error checking approval:", err);
+      localStorage.removeItem("approved");
+    });
 }
+
+// إزالة هذا السطر لأنه يسبب التحويل التلقائي بدون تحقق
+// if(localStorage.getItem("approved")==="true"){
+//   window.location.href="home.html";
+// }
+
 </script>
 
 </body>
