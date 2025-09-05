@@ -116,13 +116,19 @@
     db.ref("approvedStudents/" + deviceId).once("value").then(snapshot => {
       if (snapshot.exists()) {
         const data = snapshot.val();
+
+        // 🛠 تأكد أن التواريخ أرقام
+        const approvedAt = Number(data.approvedAt) || 0;
+        const expiry = Number(data.expiry) || 0;
+
         document.getElementById("studentName").innerText = data.name || "--";
         document.getElementById("studentPhone").innerText = data.phone || "--";
-        document.getElementById("approvedAt").innerText = new Date(data.approvedAt).toLocaleString("ar-EG");
-        document.getElementById("expiry").innerText = new Date(data.expiry).toLocaleString("ar-EG");
+        document.getElementById("approvedAt").innerText = approvedAt ? new Date(approvedAt).toLocaleString("ar-EG") : "--";
+        document.getElementById("expiry").innerText = expiry ? new Date(expiry).toLocaleString("ar-EG") : "--";
 
-        // ✅ تشغيل العداد التنازلي
-        startCountdown(data.expiry);
+        if (expiry > 0) {
+          startCountdown(expiry);
+        }
       } else {
         alert("⚠ لم يتم العثور على بيانات الحساب.");
         window.location.href = "index.html";
@@ -145,9 +151,9 @@
           return;
         }
 
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        const hours = Math.floor((distance / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((distance / (1000 * 60)) % 60);
+        const seconds = Math.floor((distance / 1000) % 60);
 
         countdownEl.innerText = `${hours.toString().padStart(2,"0")}:${minutes.toString().padStart(2,"0")}:${seconds.toString().padStart(2,"0")}`;
       }, 1000);
@@ -163,4 +169,4 @@
     }
   </script>
 </body>
-                               </html>
+</html>
