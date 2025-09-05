@@ -70,29 +70,7 @@ function initAuth() {
         submitBtn.disabled = false;
         errorEl.textContent = "";
         console.log("تم تسجيل الدخول المجهول UID:", currentUid);
-
-        // ===== تحقق الموافقة من Firebase + deviceId =====
-        const currentDevice = navigator.userAgent || "unknown";
-        db.ref("approvedStudents/"+currentUid).once("value")
-          .then(snap=>{
-            if(snap.exists()){
-              const data = snap.val();
-              if(data.deviceId === currentDevice){
-                localStorage.setItem("approved","true");
-                window.location.href="home.html";
-              } else {
-                localStorage.removeItem("approved");
-                errorEl.textContent = "❌ تم تسجيل هذا الحساب من جهاز آخر أو تم حذفه.";
-              }
-            } else {
-              localStorage.removeItem("approved");
-            }
-          }).catch(err=>{
-            console.error(err);
-            localStorage.removeItem("approved");
-          });
-        // ===== نهاية التحقق =====
-
+        checkIfApproved();
         checkExistingRequest();
       } else {
         throw new Error("لم يتم الحصول على UID.");
@@ -105,6 +83,26 @@ function initAuth() {
 }
 
 initAuth();
+
+// التحقق إذا الطالب مقبول مسبقًا وإضافة deviceId
+function checkIfApproved(){
+  if(!currentUid) return;
+  const approvedRef = db.ref("approvedStudents/"+currentUid);
+  approvedRef.once("value")
+    .then(snap=>{
+      if(snap.exists()){
+        const data = snap.val();
+        // إضافة deviceId لو مش موجود
+        if(!data.deviceId){
+          approvedRef.update({ deviceId: navigator.userAgent });
+        }
+        localStorage.setItem("approved", "true");
+        window.location.href="home.html"; // تحويل تلقائي
+      }
+    }).catch(err=>{
+      console.error("Error checking approval:", err);
+    });
+}
 
 // التحقق من وجود طلب سابق
 function checkExistingRequest(){
@@ -151,13 +149,15 @@ submitBtn.addEventListener("click", ()=>{
   db.ref("approvedStudents").orderByChild("phone").equalTo(phone).once("value")
     .then(snap2=>{
       if(snap2.exists()){
-        const dataKey = Object.keys(snap2.val())[0];
-        const deviceId = navigator.userAgent || "unknown";
-        db.ref("approvedStudents/"+dataKey).update({ deviceId }).then(()=>{
-          successEl.textContent = "✅ تم الموافقة مسبقًا على هذا الرقم.";
-          localStorage.setItem("approved","true");
-          setTimeout(()=>{ window.location.href="home.html"; },1000);
+        // إذا موجود بالفعل أضف deviceId
+        snap2.forEach(child=>{
+          if(!child.val().deviceId){
+            child.ref.update({ deviceId: navigator.userAgent });
+          }
         });
+        successEl.textContent = "✅ تم الموافقة مسبقًا على هذا الرقم.";
+        localStorage.setItem("approved","true");
+        setTimeout(()=>{ window.location.href="home.html"; },1000);
       } else {
         // إرسال الطلب
         db.ref("pendingStudents/"+currentUid).set({
