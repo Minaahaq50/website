@@ -18,9 +18,30 @@ input { width:100%; padding:14px; margin:8px 0; border-radius:12px; border:none;
 input:focus { box-shadow:0 0 15px #00f5c4; outline:none; }
 button { width:100%; padding:12px; margin:8px 0; border:none; border-radius:8px; font-size:18px; background: linear-gradient(90deg,#00c6ff,#0072ff); color:white; cursor:pointer; transition:all 0.3s ease; }
 button:hover { transform:scale(1.05); box-shadow:0 0 20px #00f5c4; }
-#error { color:#ff4f4f; margin-top:10px; }
-#success { color:#00f5c4; margin-top:10px; }
 #deleteBtn { background:#ff4f4f; display:none; }
+
+/* ✅ ستايل التوست */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 50%;
+  transform: translateX(50%);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 16px;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(50%) translateY(-10px);
+}
+.toast.success { background: #00c896; }
+.toast.error { background: #ff4f4f; }
+.toast.warning { background: #ff9800; }
 </style>
 </head>
 <body>
@@ -31,9 +52,10 @@ button:hover { transform:scale(1.05); box-shadow:0 0 20px #00f5c4; }
   <input type="text" id="studentPhone" placeholder="رقم الهاتف">
   <button id="submitBtn" disabled>جارٍ الإعداد...</button>
   <button id="deleteBtn">حذف الطلب</button>
-  <p id="error"></p>
-  <p id="success"></p>
 </div>
+
+<!-- ✅ عنصر للتوست -->
+<div id="toast" class="toast"></div>
 
 <script>
 const firebaseConfig = {
@@ -52,15 +74,21 @@ const auth = firebase.auth();
 
 const submitBtn = document.getElementById("submitBtn");
 const deleteBtn = document.getElementById("deleteBtn");
-const errorEl = document.getElementById("error");
-const successEl = document.getElementById("success");
+const toast = document.getElementById("toast");
 
 let currentUid = localStorage.getItem("localUid") || null;
+
+// ✅ دالة عرض التوست
+function showToast(message, type="success"){
+  toast.textContent = message;
+  toast.className = "toast " + type + " show";
+  setTimeout(()=>{ toast.className = "toast " + type; }, 3000);
+}
 
 // تسجيل الدخول المجهول
 function initAuth() {
   submitBtn.disabled = true;
-  errorEl.textContent = "جارٍ الاتصال بـ Firebase...";
+  showToast("جارٍ الاتصال بـ Firebase...", "warning");
 
   auth.signInAnonymously()
     .then(res => {
@@ -68,7 +96,6 @@ function initAuth() {
         currentUid = res.user.uid;
         localStorage.setItem("localUid", currentUid);
         submitBtn.disabled = false;
-        errorEl.textContent = "";
         checkIfApproved();
         checkExistingRequest();
         listenForDeletion();
@@ -77,7 +104,7 @@ function initAuth() {
       }
     })
     .catch(err => {
-      errorEl.textContent = "❌ فشل تسجيل الدخول المجهول. تحقق من إعدادات Firebase Auth.";
+      showToast("❌ فشل تسجيل الدخول المجهول.", "error");
       console.error("Auth Error:", err);
     });
 }
@@ -95,9 +122,6 @@ function checkIfApproved(){
       } else {
         localStorage.removeItem("approved");
       }
-    }).catch(err=>{
-      console.error("Error checking approval:", err);
-      localStorage.removeItem("approved");
     });
 }
 
@@ -110,8 +134,8 @@ function listenForDeletion(){
     } else {
       if(localStorage.getItem("approved") === "true"){ 
         localStorage.removeItem("approved");
-        alert("تم حذفك من النظام، يرجى إعادة التسجيل.");
-        location.reload();
+        showToast("❌ تم حذفك من النظام، يرجى إعادة التسجيل.", "error");
+        setTimeout(()=>{ location.reload(); },1500);
       }
     }
   });
@@ -123,38 +147,31 @@ function checkExistingRequest(){
   db.ref("pendingStudents/"+currentUid).once("value")
     .then(snap => {
       if(snap.exists()){
-        errorEl.textContent = "⚠ لديك طلب معلق، يمكنك حذفه وإعادة التسجيل.";
+        showToast("⚠ لديك طلب معلق، يمكنك حذفه.", "warning");
         deleteBtn.style.display = "block";
       } else {
         deleteBtn.style.display = "none";
-        errorEl.textContent = "";
       }
-    })
-    .catch(err => {
-      errorEl.textContent = "❌ حدث خطأ أثناء التحقق من الطلبات.";
-      console.error(err);
     });
 }
 
 // إرسال الطلب
 submitBtn.addEventListener("click", ()=>{
   if(!currentUid){
-    errorEl.textContent = "❌ UID غير موجود، لا يمكن إرسال الطلب.";
+    showToast("❌ UID غير موجود، لا يمكن إرسال الطلب.", "error");
     return;
   }
 
   const name = document.getElementById("studentName").value.trim();
   const phone = document.getElementById("studentPhone").value.trim();
-  errorEl.textContent = "";
-  successEl.textContent = "";
 
   if(!name || !phone){
-    errorEl.textContent = "❌ يرجى ملء جميع الحقول.";
+    showToast("❌ يرجى ملء جميع الحقول.", "error");
     return;
   }
 
   if(!/^\d{11}$/.test(phone)){
-    errorEl.textContent = "❌ رقم الهاتف غير صالح.";
+    showToast("❌ رقم الهاتف غير صالح.", "error");
     return;
   }
 
@@ -165,39 +182,32 @@ submitBtn.addEventListener("click", ()=>{
         const approvedKey = Object.keys(snap2.val())[0];
         const approvedData = snap2.val()[approvedKey];
 
-        // منع فتح الحساب من جهاز آخر
         if(approvedData.deviceId && approvedData.deviceId !== currentUid){
-          errorEl.textContent = "❌ هذا الحساب مسجل من جهاز آخر.";
+          showToast("❌ هذا الحساب مسجل من جهاز آخر.", "error");
           return;
         }
 
-        // لو أول مرة يتم ربط الجهاز
         if(!approvedData.deviceId){
-          db.ref("approvedStudents/"+approvedKey).update({
-            deviceId: currentUid
-          });
+          db.ref("approvedStudents/"+approvedKey).update({ deviceId: currentUid });
         }
 
-        successEl.textContent = "✅ تم الموافقة مسبقًا على هذا الرقم.";
+        showToast("✅ تم الموافقة مسبقًا على هذا الرقم.", "success");
         localStorage.setItem("approved","true");
         setTimeout(()=>{ window.location.href="home.html"; },1000);
       } else {
-        // إرسال طلب جديد
         db.ref("pendingStudents/"+currentUid).set({
-          name, 
-          phone, 
-          deviceId: currentUid, // ✅ تخزين الجهاز
-          timestamp: Date.now()
+          name, phone, deviceId: currentUid, timestamp: Date.now()
         }).then(()=>{
-          successEl.textContent = "✅ تم إرسال طلبك، انتظر الموافقة.";
+          showToast("✅ تم إرسال طلبك، انتظر الموافقة.", "success");
           deleteBtn.style.display = "block";
         }).catch(err=>{
-          errorEl.textContent = "❌ حدث خطأ أثناء إرسال الطلب.";
+          showToast("❌ حدث خطأ أثناء إرسال الطلب.", "error");
           console.error(err);
         });
       }
-    }).catch(err=>{
-      errorEl.textContent = "❌ حدث خطأ أثناء التحقق من الموافقة.";
+    })
+    .catch(err=>{
+      showToast("❌ خطأ أثناء التحقق من الموافقة.", "error");
       console.error(err);
     });
 });
@@ -207,12 +217,11 @@ deleteBtn.addEventListener("click", ()=>{
   if(!currentUid) return;
   db.ref("pendingStudents/"+currentUid).remove()
     .then(()=>{
-      successEl.textContent = "✅ تم حذف الطلب بنجاح.";
+      showToast("✅ تم حذف الطلب بنجاح.", "success");
       deleteBtn.style.display="none";
-      errorEl.textContent="";
     })
     .catch(err=>{
-      errorEl.textContent = "❌ حدث خطأ أثناء الحذف.";
+      showToast("❌ حدث خطأ أثناء الحذف.", "error");
       console.error(err);
     });
 });
