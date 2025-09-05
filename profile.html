@@ -109,7 +109,7 @@
     const deviceId = localStorage.getItem("deviceId");
     if (!deviceId) {
       alert("⚠ لم يتم العثور على جلسة دخول، من فضلك سجل دخول من جديد.");
-      window.location.href = "login.html"; 
+      window.location.href = "index.html"; 
     }
 
     // 📌 جلب بيانات الطالب من Firebase
@@ -125,7 +125,7 @@
         startCountdown(data.expiry);
       } else {
         alert("⚠ لم يتم العثور على بيانات الحساب.");
-        window.location.href = "login.html";
+        window.location.href = "index.html";
       }
     });
 
@@ -141,7 +141,7 @@
           countdownEl.innerText = "انتهت الصلاحية!";
           alert("⚠ انتهت صلاحية الكود. سيتم تسجيل خروجك.");
           localStorage.removeItem("deviceId");
-          window.location.href = "login.html";
+          window.location.href = "index.html";
           return;
         }
 
@@ -158,7 +158,7 @@
       if (confirm("⚠ تحذير: إذا قمت بتسجيل الخروج لن تتمكن من الدخول بنفس هذا الجهاز مرة أخرى. هل أنت متأكد؟")) {
         localStorage.removeItem("deviceId");
         alert("تم تسجيل الخروج بنجاح.");
-        window.location.href = "login.html";
+        window.location.href = "index.html";
       }
     }
   </script>
