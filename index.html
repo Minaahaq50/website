@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>THE BEST - تسجيل الطلاب</title>
 
 <!-- Firebase -->
@@ -69,7 +69,6 @@ function initAuth() {
         localStorage.setItem("localUid", currentUid);
         submitBtn.disabled = false;
         errorEl.textContent = "";
-        console.log("تم تسجيل الدخول المجهول UID:", currentUid);
         checkIfApproved();
         checkExistingRequest();
       } else {
@@ -87,15 +86,13 @@ initAuth();
 // التحقق إذا الطالب مقبول مسبقًا
 function checkIfApproved(){
   if(!currentUid) return;
-  db.ref("approvedStudents/"+currentUid).once("value")
+  db.ref("approvedStudents").orderByChild("deviceId").equalTo(currentUid).once("value")
     .then(snap=>{
-     if(snap.exists()){
-  localStorage.setItem("approved", "true");
-  window.location.href="home.html"; // تحويل تلقائي
-} else {
-  localStorage.removeItem("approved"); // لو مش موجود، نشيل العلامة
-}
-
+      if(snap.exists()){
+        localStorage.setItem("approved","true");
+        window.location.href="home.html"; // تحويل تلقائي
+      } else {
+        localStorage.removeItem("approved");
       }
     }).catch(err=>{
       console.error("Error checking approval:", err);
@@ -147,6 +144,11 @@ submitBtn.addEventListener("click", ()=>{
   db.ref("approvedStudents").orderByChild("phone").equalTo(phone).once("value")
     .then(snap2=>{
       if(snap2.exists()){
+        const approvedKey = Object.keys(snap2.val())[0];
+        // إضافة deviceId
+        db.ref("approvedStudents/"+approvedKey).update({
+          deviceId: currentUid
+        });
         successEl.textContent = "✅ تم الموافقة مسبقًا على هذا الرقم.";
         localStorage.setItem("approved","true");
         setTimeout(()=>{ window.location.href="home.html"; },1000);
