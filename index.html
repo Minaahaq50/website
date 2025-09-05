@@ -55,7 +55,7 @@ const deleteBtn = document.getElementById("deleteBtn");
 const errorEl = document.getElementById("error");
 const successEl = document.getElementById("success");
 
-let currentUid = null;
+let currentUid = localStorage.getItem("localUid") || null;
 
 // تسجيل الدخول المجهول
 function initAuth() {
@@ -70,6 +70,7 @@ function initAuth() {
         submitBtn.disabled = false;
         errorEl.textContent = "";
         console.log("تم تسجيل الدخول المجهول UID:", currentUid);
+        checkIfApproved();
         checkExistingRequest();
       } else {
         throw new Error("لم يتم الحصول على UID.");
@@ -82,6 +83,20 @@ function initAuth() {
 }
 
 initAuth();
+
+// التحقق إذا الطالب مقبول مسبقًا
+function checkIfApproved(){
+  if(!currentUid) return;
+  db.ref("approvedStudents/"+currentUid).once("value")
+    .then(snap=>{
+      if(snap.exists()){
+        localStorage.setItem("approved", "true");
+        window.location.href="home.html"; // تحويل تلقائي
+      }
+    }).catch(err=>{
+      console.error("Error checking approval:", err);
+    });
+}
 
 // التحقق من وجود طلب سابق
 function checkExistingRequest(){
@@ -119,41 +134,32 @@ submitBtn.addEventListener("click", ()=>{
     return;
   }
 
-  // التحقق من صحة رقم الهاتف (11 رقم لمصر)
   if(!/^\d{11}$/.test(phone)){
     errorEl.textContent = "❌ رقم الهاتف غير صالح.";
     return;
   }
 
-  // التحقق من طلب سابق للمستخدم نفسه فقط
-  db.ref("pendingStudents/"+currentUid).once("value")
-    .then(snap=>{
-      if(snap.exists() && snap.val().phone === phone){
-        errorEl.textContent = "⚠ لديك طلب معلق مسبقًا.";
-        deleteBtn.style.display = "block";
+  // التحقق من الموافقة المسبقة
+  db.ref("approvedStudents").orderByChild("phone").equalTo(phone).once("value")
+    .then(snap2=>{
+      if(snap2.exists()){
+        successEl.textContent = "✅ تم الموافقة مسبقًا على هذا الرقم.";
+        localStorage.setItem("approved","true");
+        setTimeout(()=>{ window.location.href="home.html"; },1000);
       } else {
-        // التحقق من الموافقة المسبقة
-        db.ref("approvedStudents").orderByChild("phone").equalTo(phone).once("value")
-          .then(snap2=>{
-            if(snap2.exists()){
-              successEl.textContent = "✅ تم الموافقة مسبقًا على هذا الرقم.";
-              setTimeout(()=>{ window.location.href="home.html"; },1000);
-            } else {
-              // إرسال الطلب
-              db.ref("pendingStudents/"+currentUid).set({
-                name, phone, timestamp:Date.now()
-              }).then(()=>{
-                successEl.textContent = "✅ تم إرسال طلبك، انتظر الموافقة.";
-                deleteBtn.style.display = "block";
-              }).catch(err=>{
-                errorEl.textContent = "❌ حدث خطأ أثناء إرسال الطلب.";
-                console.error(err);
-              });
-            }
-          });
+        // إرسال الطلب
+        db.ref("pendingStudents/"+currentUid).set({
+          name, phone, timestamp:Date.now()
+        }).then(()=>{
+          successEl.textContent = "✅ تم إرسال طلبك، انتظر الموافقة.";
+          deleteBtn.style.display = "block";
+        }).catch(err=>{
+          errorEl.textContent = "❌ حدث خطأ أثناء إرسال الطلب.";
+          console.error(err);
+        });
       }
     }).catch(err=>{
-      errorEl.textContent = "❌ حدث خطأ أثناء التحقق من الطلبات.";
+      errorEl.textContent = "❌ حدث خطأ أثناء التحقق من الموافقة.";
       console.error(err);
     });
 });
@@ -172,6 +178,11 @@ deleteBtn.addEventListener("click", ()=>{
       console.error(err);
     });
 });
+
+// عند إعادة الدخول، إذا تم القبول مسبقًا يتم التحويل مباشرة
+if(localStorage.getItem("approved")==="true"){
+  window.location.href="home.html";
+}
 </script>
 
 </body>
