@@ -126,6 +126,10 @@ function checkIfApproved(){
           return;
         }
 
+        // ✅ حفظ البيانات في localStorage
+        if(data.name) localStorage.setItem("studentName", data.name);
+        if(data.phone) localStorage.setItem("studentPhone", data.phone);
+
         localStorage.setItem("approved","true");
         window.location.href="home.html"; 
       } else {
@@ -148,6 +152,10 @@ function listenForDeletion(){
         setTimeout(()=>{ location.reload(); },1500);
         return;
       }
+
+      // تحديث بيانات محليًا
+      if(data.name) localStorage.setItem("studentName", data.name);
+      if(data.phone) localStorage.setItem("studentPhone", data.phone);
 
       localStorage.setItem("approved","true");
     } else {
@@ -174,7 +182,7 @@ function checkExistingRequest(){
     });
 }
 
-// إرسال الطلب
+// ✅ إرسال الطلب
 submitBtn.addEventListener("click", ()=>{
   if(!currentUid){
     showToast("❌ UID غير موجود، لا يمكن إرسال الطلب.", "error");
@@ -193,6 +201,10 @@ submitBtn.addEventListener("click", ()=>{
     showToast("❌ رقم الهاتف غير صالح.", "error");
     return;
   }
+
+  // ✅ حفظ البيانات محليًا في الجهاز
+  localStorage.setItem("studentName", name);
+  localStorage.setItem("studentPhone", phone);
 
   // التحقق من الموافقة المسبقة
   db.ref("approvedStudents").orderByChild("phone").equalTo(phone).once("value")
@@ -236,7 +248,7 @@ submitBtn.addEventListener("click", ()=>{
     });
 });
 
-// حذف الطلب
+// ✅ حذف الطلب
 deleteBtn.addEventListener("click", ()=>{
   if(!currentUid) return;
   db.ref("pendingStudents/"+currentUid).remove()
@@ -250,6 +262,5 @@ deleteBtn.addEventListener("click", ()=>{
     });
 });
 </script>
-
 </body>
 </html>
