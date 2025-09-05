@@ -84,18 +84,12 @@ function initAuth() {
 
 initAuth();
 
-// التحقق إذا الطالب مقبول مسبقًا وإضافة deviceId
+// التحقق إذا الطالب مقبول مسبقًا
 function checkIfApproved(){
   if(!currentUid) return;
-  const approvedRef = db.ref("approvedStudents/"+currentUid);
-  approvedRef.once("value")
+  db.ref("approvedStudents/"+currentUid).once("value")
     .then(snap=>{
       if(snap.exists()){
-        const data = snap.val();
-        // إضافة deviceId لو مش موجود
-        if(!data.deviceId){
-          approvedRef.update({ deviceId: navigator.userAgent });
-        }
         localStorage.setItem("approved", "true");
         window.location.href="home.html"; // تحويل تلقائي
       }
@@ -149,12 +143,6 @@ submitBtn.addEventListener("click", ()=>{
   db.ref("approvedStudents").orderByChild("phone").equalTo(phone).once("value")
     .then(snap2=>{
       if(snap2.exists()){
-        // إذا موجود بالفعل أضف deviceId
-        snap2.forEach(child=>{
-          if(!child.val().deviceId){
-            child.ref.update({ deviceId: navigator.userAgent });
-          }
-        });
         successEl.textContent = "✅ تم الموافقة مسبقًا على هذا الرقم.";
         localStorage.setItem("approved","true");
         setTimeout(()=>{ window.location.href="home.html"; },1000);
