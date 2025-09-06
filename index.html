@@ -85,7 +85,7 @@ function showToast(message, type="success"){
   setTimeout(()=>{ toast.className = "toast " + type; }, 3000);
 }
 
-// تسجيل الدخول المجهول
+// ✅ تسجيل الدخول المجهول وتخزين UID
 function initAuth() {
   submitBtn.disabled = true;
   showToast("جارٍ الاتصال بـ server...", "warning");
@@ -114,11 +114,10 @@ initAuth();
 // ✅ التحقق إذا الطالب مقبول مسبقًا مع انتهاء الكود
 function checkIfApproved(){
   if(!currentUid) return;
-  db.ref("approvedStudents").orderByChild("deviceId").equalTo(currentUid).once("value")
+  db.ref("approvedStudents/"+currentUid).once("value")
     .then(snap=>{
       if(snap.exists()){
-        const key = Object.keys(snap.val())[0];
-        const data = snap.val()[key];
+        const data = snap.val();
 
         if(data.expiry && Date.now() > data.expiry){
           showToast("❌ انتهت صلاحية الكود، يرجى إعادة التسجيل.", "error");
@@ -126,11 +125,10 @@ function checkIfApproved(){
           return;
         }
 
-        // ✅ حفظ البيانات في localStorage
-        if(data.name) localStorage.setItem("studentName", data.name);
-        if(data.phone) localStorage.setItem("studentPhone", data.phone);
-
+        localStorage.setItem("studentName", data.name || "");
+        localStorage.setItem("studentPhone", data.phone || "");
         localStorage.setItem("approved","true");
+
         window.location.href="home.html"; 
       } else {
         localStorage.removeItem("approved");
@@ -141,10 +139,9 @@ function checkIfApproved(){
 // ✅ مراقبة الحذف أو انتهاء الكود
 function listenForDeletion(){
   if(!currentUid) return;
-  db.ref("approvedStudents").orderByChild("deviceId").equalTo(currentUid).on("value", snap=>{
+  db.ref("approvedStudents/"+currentUid).on("value", snap=>{
     if(snap.exists()){
-      const key = Object.keys(snap.val())[0];
-      const data = snap.val()[key];
+      const data = snap.val();
 
       if(data.expiry && Date.now() > data.expiry){
         showToast("❌ انتهت صلاحية الكود، يرجى إعادة التسجيل.", "error");
@@ -153,10 +150,8 @@ function listenForDeletion(){
         return;
       }
 
-      // تحديث بيانات محليًا
-      if(data.name) localStorage.setItem("studentName", data.name);
-      if(data.phone) localStorage.setItem("studentPhone", data.phone);
-
+      localStorage.setItem("studentName", data.name || "");
+      localStorage.setItem("studentPhone", data.phone || "");
       localStorage.setItem("approved","true");
     } else {
       if(localStorage.getItem("approved") === "true"){ 
@@ -168,7 +163,7 @@ function listenForDeletion(){
   });
 }
 
-// التحقق من وجود طلب سابق
+// ✅ التحقق من وجود طلب سابق
 function checkExistingRequest(){
   if(!currentUid) return;
   db.ref("pendingStudents/"+currentUid).once("value")
@@ -206,7 +201,7 @@ submitBtn.addEventListener("click", ()=>{
   localStorage.setItem("studentName", name);
   localStorage.setItem("studentPhone", phone);
 
-  // التحقق من الموافقة المسبقة
+  // تحقق هل الطالب بالفعل في approvedStudents
   db.ref("approvedStudents").orderByChild("phone").equalTo(phone).once("value")
     .then(snap2=>{
       if(snap2.exists()){
@@ -218,8 +213,9 @@ submitBtn.addEventListener("click", ()=>{
           return;
         }
 
+        // ✅ ربط الطالب بالـ UID لو مش محفوظ
         if(!approvedData.deviceId){
-          db.ref("approvedStudents/"+approvedKey).update({ deviceId: currentUid });
+          db.ref("approvedStudents/"+approvedKey).update({ deviceId: currentUid, uid: currentUid });
         }
 
         if(approvedData.expiry && Date.now() > approvedData.expiry){
@@ -231,8 +227,13 @@ submitBtn.addEventListener("click", ()=>{
         localStorage.setItem("approved","true");
         setTimeout(()=>{ window.location.href="home.html"; },1000);
       } else {
+        // ✅ إضافة الطالب في pendingStudents باستخدام UID
         db.ref("pendingStudents/"+currentUid).set({
-          name, phone, deviceId: currentUid, timestamp: Date.now()
+          uid: currentUid,
+          name,
+          phone,
+          deviceId: currentUid,
+          timestamp: Date.now()
         }).then(()=>{
           showToast("✅ تم إرسال طلبك، انتظر الموافقة.", "success");
           deleteBtn.style.display = "block";
