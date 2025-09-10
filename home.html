@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>THE BEST - منصة الصف الثالث الثانوي</title>
 <style>
-  /* خطوط محسنة */
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
 
   body {
@@ -262,29 +261,6 @@
     background: #ff6b6b !important;
     color: #fff !important;
   }
-
-  .video-rotated {
-    transform: rotate(90deg);
-    transform-origin: center center;
-    width: 100vh !important;
-    height: 100vw !important;
-  }
-
-  /* Responsive tweaks */
-  @media (max-width: 600px) {
-    #videos-container {
-      grid-template-columns: 1fr;
-      padding: 0 10px 30px;
-    }
-    .filter-bar button, #teachers-filter button {
-      padding: 10px 16px;
-      font-size: 14px;
-    }
-    header {
-      font-size: 22px;
-      padding: 18px 10px;
-    }
-  }
 </style>
 </head>
 <body>
@@ -350,7 +326,7 @@
     const prevBtn         = document.getElementById('prevVideo');
     const fullscreenBtn   = document.getElementById('fullscreenBtn');
 
-    let rotated = false;
+    let rotated = 0; // زاوية التدوير بالدرجات
     let allVideos = [];
     let selectedSubject = null;
     let selectedTeacher = null;
@@ -358,7 +334,15 @@
     let currentIndex = 0;
 
     const isYouTubeUrl = url => /youtu\.be|youtube\.com/.test(url);
-    const getYouTubeId = url => { try { const u=new URL(url); if(u.hostname.includes('youtu.be')) return u.pathname.replace('/',''); if(u.searchParams.get('v')) return u.searchParams.get('v'); const m=u.pathname.match(/\/embed\/([^/?#]+)/); return m?m[1]:''; } catch{return '';} };
+    const getYouTubeId = url => { 
+      try { 
+        const u = new URL(url); 
+        if(u.hostname.includes('youtu.be')) return u.pathname.replace('/',''); 
+        if(u.searchParams.get('v')) return u.searchParams.get('v'); 
+        const m = u.pathname.match(/\/embed\/([^/?#]+)/); 
+        return m ? m[1] : ''; 
+      } catch { return ''; } 
+    };
     const getYTThumb = id => id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : 'https://via.placeholder.com/300x200?text=VIDEO';
 
     const videosRef = ref(db, 'videos');
@@ -432,6 +416,9 @@
       currentIndex=index;
       const video=currentVideos[currentIndex];
       if(!video) return;
+      rotated = 0; // إعادة التدوير عند فتح فيديو جديد
+      const wrap=document.querySelector('#videoModal .modal-wrap');
+      wrap.style.transform = 'rotate(0deg)';
       if(isYouTubeUrl(video.url)){
         const id=getYouTubeId(video.url);
         videoFrame.src=`https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
@@ -446,12 +433,10 @@
       videoFrame.src='';
       currentVideos=[];
       currentIndex=0;
-      if(rotated){
-        const wrap=document.querySelector('#videoModal .modal-wrap');
-        wrap.classList.remove("video-rotated");
-        rotated=false;
-        if(document.exitFullscreen) document.exitFullscreen();
-      }
+      const wrap=document.querySelector('#videoModal .modal-wrap');
+      wrap.style.transform = 'rotate(0deg)';
+      rotated = 0;
+      if(document.exitFullscreen) document.exitFullscreen();
     }
 
     closeModalBtn.addEventListener('click', closeVideo);
@@ -460,18 +445,13 @@
     fullscreenBtn.addEventListener('click', ()=>{
       const wrap=document.querySelector('#videoModal .modal-wrap');
       if(!wrap) return;
-      if(!rotated){
-        wrap.classList.add("video-rotated");
-        rotated=true;
-      } else {
-        wrap.classList.remove("video-rotated");
-        rotated=false;
-      }
-      if(wrap.requestFullscreen) wrap.requestFullscreen();
-      else if(wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
-      else if(wrap.msRequestFullscreen) wrap.msRequestFullscreen();
+      rotated = (rotated + 90) % 360;
+      wrap.style.transform = `rotate(${rotated}deg)`;
+      wrap.style.transformOrigin = 'center center';
+      wrap.style.transition = 'transform 0.5s ease';
     });
     document.addEventListener('keydown', e=>{ if(e.key==='Escape' && videoModal.style.display==='flex') closeVideo(); });
     videoModal.addEventListener('click', e=>{ if(e.target===videoModal) closeVideo(); });
   </script>
-</
+</body>
+</html>
