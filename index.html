@@ -573,7 +573,7 @@
           if (data.phone) localStorage.setItem("studentPhone", data.phone);
 
           localStorage.setItem("approved", "true");
-          window.location.href = "home.html";
+          window.location.href = "subjects.html";
         } else {
           localStorage.removeItem("approved");
         }
@@ -681,7 +681,7 @@
 
           showToast("تم الموافقة مسبقاً على هذا الرقم", "success");
           localStorage.setItem("approved","true");
-          setTimeout(() => { window.location.href="home.html"; }, 1000);
+          setTimeout(() => { window.location.href="subjects.html"; }, 1000);
         } else {
           db.ref("pendingStudents/"+currentUid).set({
             name, phone, deviceId: currentUid, timestamp: Date.now()
