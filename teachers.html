@@ -5,10 +5,95 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>المدرسون - منصة THE BEST</title>
 <style>
-  body { font-family: 'Cairo', sans-serif; background:#0d0d0d; color:#fff; padding:20px; }
-  h1 { color:#ffd700; text-align:center; }
+  @import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
 
-  ul { list-style:none; padding:0; max-width:400px; margin:20px auto; }
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: #121212;
+    color: #fff;
+    padding: 80px 15px 30px;
+    margin: 0;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* ===== الشريط العلوي ===== */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #111;
+    padding: 10px 15px;
+    color: white;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1000;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .menu-btn {
+    font-size: 22px;
+    cursor: pointer;
+  }
+
+  .title {
+    font-size: 14px;
+    color: #f36;
+  }
+
+  .icons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .icons img {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+  }
+
+  .toggle-dark {
+    background: #fff;
+    border-radius: 12px;
+    width: 40px;
+    height: 20px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .toggle-dark::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #111;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+
+  .toggle-dark.active::after {
+    left: 22px;
+    background: #ff0;
+  }
+
+  /* ===== باقي التنسيقات ===== */
+  h1 {
+    color: #ffd700;
+    text-align: center;
+    margin-bottom: 20px;
+    text-shadow: 0 0 8px #ffd700;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    max-width: 500px;
+    margin: 0 auto;
+  }
 
   li {
     background:#1a1a1a;
@@ -68,18 +153,75 @@
     color:#ffd700;
     cursor:pointer;
     text-align:center;
-    margin-bottom:20px;
+    margin:15px auto;
     display:block;
     max-width:400px;
-    margin-left:auto;
-    margin-right:auto;
     font-weight:bold;
+  }
+
+  /* ===== Toast إشعار ===== */
+  #toast {
+    visibility: hidden;
+    min-width: 260px;
+    background: #1e1e1e;
+    color: #ffd700;
+    text-align: center;
+    border-radius: 12px;
+    padding: 14px;
+    position: fixed;
+    z-index: 2000;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.5s, bottom 0.5s;
+  }
+  #toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 50px;
+  }
+  body.light-mode {
+    background: #f5f5f5;
+    color: #000;
+  }
+  body.light-mode .topbar {
+    background: #fff;
+    color: #000;
+  }
+  body.light-mode li {
+    background: #fff;
+    color: #000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+  body.light-mode #toast {
+    background: #fff;
+    color: #333;
   }
 </style>
 </head>
 <body>
+
+  <!-- ✅ الشريط العلوي -->
+  <div class="topbar">
+    <div class="menu-btn" onclick="window.location.href='subjects.html'">⬅</div>
+    <div class="title">مدرسين المادة</div>
+    <div class="icons">
+      <div class="toggle-dark" id="darkToggle"></div>
+      <a href="https://whatsapp.com/channel/0029Vb6mJg61SWsuotwwDR0R" target="_blank">
+        <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp">
+      </a>
+      <img id="shareBtn" src="https://cdn-icons-png.flaticon.com/512/929/929610.png" alt="Share">
+      <img id="notifyBtn" src="https://cdn-icons-png.flaticon.com/512/1827/1827272.png" alt="Notification">
+    </div>
+  </div>
+
+  <!-- ✅ Toast -->
+  <div id="toast">الإشعارات هتتفعل قريبًا 🔔✨</div>
+
   <h1>مدرسين الماده</h1>
-  <div id="back">⬅ العودة إلى المواد</div>
   <ul id="teachers-list">
     <li>جارٍ التحميل...</li>
   </ul>
@@ -105,13 +247,8 @@
     const subject = urlParams.get('subject');
 
     const teachersList = document.getElementById('teachers-list');
-    const backBtn = document.getElementById('back');
 
-    backBtn.onclick = () => {
-      window.location.href = 'subjects.html';
-    };
-
-    // خريطة لصور المواد
+    // صور المواد
     const subjectImages = {
       "أحياء": "https://www2.0zz0.com/2025/09/30/15/923573836.png",
       "فيزياء": "https://www2.0zz0.com/2025/09/30/15/161746092.jpeg",
@@ -121,22 +258,22 @@
       "ادبي": "https://www2.0zz0.com/2025/09/30/16/456237523.jpeg",
     };
 
-    /// صور المدرسين ثابتة
-const teacherImages = {
-  "احمد الجوهري": "https://www2.0zz0.com/2025/09/30/16/552561462.jpeg",
-  "امنيه السيد": "https://www2.0zz0.com/2025/09/30/16/890513320.jpeg",
-  "الجيو": "https://www2.0zz0.com/2025/09/30/16/909707656.jpeg",
-  "احمد ايمن": "https://www2.0zz0.com/2025/09/30/16/773990567.jpeg",
-  "مس مي": "https://www2.0zz0.com/2025/09/30/16/649744644.jpeg",
-  "وائل ميلاد": "https://www2.0zz0.com/2025/09/30/16/168143044.jpeg",
-  "رضا فاروق": "https://www2.0zz0.com/2025/09/30/16/498034522.jpeg",
-  "محمد صلاح": "https://www2.0zz0.com/2025/09/30/16/338801240.jpeg",
-  "كيرلس القص": "https://www2.0zz0.com/2025/09/30/16/232647610.png",
-  "عبد المعبود": "https://www2.0zz0.com/2025/09/30/16/576331510.jpeg",
-  "خالد صقر": "https://www2.0zz0.com/2025/09/30/16/161825392.jpeg",
-  "عبد الجواد": "https://www2.0zz0.com/2025/09/30/16/754219913.jpeg",
-  "جون جهبذ": "https://www2.0zz0.com/2025/09/30/16/456815270.jpeg"
-};
+    // صور المدرسين
+    const teacherImages = {
+      "احمد الجوهري": "https://www2.0zz0.com/2025/09/30/16/552561462.jpeg",
+      "امنيه السيد": "https://www2.0zz0.com/2025/09/30/16/890513320.jpeg",
+      "الجيو": "https://www2.0zz0.com/2025/09/30/16/909707656.jpeg",
+      "احمد ايمن": "https://www2.0zz0.com/2025/09/30/16/773990567.jpeg",
+      "مس مي": "https://www2.0zz0.com/2025/09/30/16/649744644.jpeg",
+      "وائل ميلاد": "https://www2.0zz0.com/2025/09/30/16/168143044.jpeg",
+      "رضا فاروق": "https://www2.0zz0.com/2025/09/30/16/498034522.jpeg",
+      "محمد صلاح": "https://www2.0zz0.com/2025/09/30/16/338801240.jpeg",
+      "كيرلس القص": "https://www2.0zz0.com/2025/09/30/16/232647610.png",
+      "عبد المعبود": "https://www2.0zz0.com/2025/09/30/16/576331510.jpeg",
+      "خالد صقر": "https://www2.0zz0.com/2025/09/30/16/161825392.jpeg",
+      "عبد الجواد": "https://www2.0zz0.com/2025/09/30/16/754219913.jpeg",
+      "جون جهبذ": "https://www2.0zz0.com/2025/09/30/16/456815270.jpeg"
+    };
 
     if(!subject){
       teachersList.innerHTML = '<li>لم يتم تحديد المادة.</li>';
@@ -146,11 +283,11 @@ const teacherImages = {
         const teachers = new Map();
 
         Object.values(data).forEach(v => {
-  if (v.subject === subject && v.teacher) {
-    const cleanTeacher = v.teacher.trim().replace(/\s+/g, ' ');
-    teachers.set(cleanTeacher, teacherImages[cleanTeacher] || null);
-  }
-});
+          if (v.subject === subject && v.teacher) {
+            const cleanTeacher = v.teacher.trim().replace(/\s+/g, ' ');
+            teachers.set(cleanTeacher, teacherImages[cleanTeacher] || null);
+          }
+        });
 
         teachersList.innerHTML = '';
         if(teachers.size === 0){
@@ -189,6 +326,43 @@ const teacherImages = {
         });
       });
     }
+
+    // ✅ دالة Toast
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.className = "show";
+      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+    }
+
+    // ✅ زر الوضع الليلي والفاتح
+    const toggle = document.getElementById("darkToggle");
+    toggle.addEventListener("click", () => {
+      toggle.classList.toggle("active");
+      document.body.classList.toggle("light-mode");
+    });
+
+    // ✅ زر المشاركة
+    document.getElementById("shareBtn").addEventListener("click", async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "تطبيق دروسك أون لاين",
+            text: "جرب تطبيق دروسك أون لاين 2026 📚✨",
+            url: window.location.href
+          });
+        } catch (err) {
+          showToast("❌ تم إلغاء المشاركة");
+        }
+      } else {
+        showToast("المشاركة غير مدعومة في متصفحك 😢");
+      }
+    });
+
+    // ✅ زر الإشعارات → Toast
+    document.getElementById("notifyBtn").addEventListener("click", () => {
+      showToast("الإشعارات هتتفعل قريبًا 🔔✨");
+    });
   </script>
 </body>
 </html>
