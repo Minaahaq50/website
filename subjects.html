@@ -192,6 +192,36 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.15);
   }
 
+  /* ===== Toast إشعار ===== */
+  #toast {
+    visibility: hidden;
+    min-width: 260px;
+    background: #1e1e1e;
+    color: #ffd700;
+    text-align: center;
+    border-radius: 12px;
+    padding: 14px;
+    position: fixed;
+    z-index: 2000;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.5s, bottom 0.5s;
+  }
+  #toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 50px;
+  }
+  body.light-mode #toast {
+    background: #fff;
+    color: #333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
   @media (max-width: 480px) {
     h1 {
       font-size: 2rem;
@@ -231,6 +261,9 @@
       <img id="notifyBtn" src="https://cdn-icons-png.flaticon.com/512/1827/1827272.png" alt="Notification">
     </div>
   </div>
+
+  <!-- ✅ Toast -->
+  <div id="toast">الإشعارات هتتفعل قريبًا 🔔✨</div>
 
   <h1>المواد الخاصة بمنصة دروسك أون لاين</h1>
   <ul id="subjects-list">
@@ -306,6 +339,14 @@
       console.error(error);
     });
 
+    // ✅ دالة Toast
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.className = "show";
+      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+    }
+
     // ✅ زر الوضع الليلي والفاتح
     const toggle = document.getElementById("darkToggle");
     toggle.addEventListener("click", () => {
@@ -323,17 +364,17 @@
             url: window.location.href
           });
         } catch (err) {
-          console.log("المشاركة أُلغيت");
+          showToast("❌ تم إلغاء المشاركة");
         }
       } else {
-        alert("المشاركة غير مدعومة في متصفحك 😢");
+        showToast("المشاركة غير مدعومة في متصفحك 😢");
       }
     });
 
-    // ✅ زر الإشعارات
+    // ✅ زر الإشعارات → Toast
     document.getElementById("notifyBtn").addEventListener("click", () => {
-      alert("الإشعارات هتتفعل قريبًا 🔔");
+      showToast("الإشعارات هتتفعل قريبًا 🔔✨");
     });
   </script>
 </body>
-</html>
+  </html>
