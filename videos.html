@@ -113,13 +113,50 @@
   .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
   .thumb .play-btn { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:50px; color:#ffd700; text-shadow:0 0 10px rgba(0,0,0,.9); }
 
+  /* موديل الفيديو */
   #videoModal {
     display:none; 
     position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000;
     align-items:center; justify-content:center; padding:20px;
   }
-  #videoModal .modal-wrap { width:100%; max-width:980px; background:#000; border-radius:12px; overflow:hidden; }
-  #videoModal iframe { width:100%; height:560px; border:0; display:block; }
+  #videoModal .modal-wrap { 
+    width:100%; max-width:980px; background:#000; border-radius:12px; overflow:hidden; 
+    position: relative;
+  }
+  #videoModal iframe { width:100%; height:560px; border:0; display:block; background:#000; }
+
+  /* أزرار التحكم في الموديل */
+  #videoModal .modal-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #111;
+    color: #ffd700;
+    font-weight: bold;
+  }
+  #videoModal .modal-controls button {
+    background: none;
+    border: 1px solid #333;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #ffd700;
+    transition: background 0.2s, color 0.2s;
+  }
+  #videoModal .modal-controls button:hover {
+    background: #222;
+    color: #fff;
+  }
+
+  /* تدوير الفيديو */
+  .video-rotated {
+    transform: rotate(90deg);
+    transform-origin: center center;
+    width: 100vh !important;
+    height: 100vw !important;
+    transition: all 0.5s ease;
+  }
 
   #toast {
     visibility: hidden;
@@ -179,9 +216,20 @@
     <div style="text-align:center; font-size:18px; color:#ffd700;">جارٍ التحميل...</div>
   </div>
 
+  <!-- موديل الفيديو -->
   <div id="videoModal" aria-hidden="true">
     <div class="modal-wrap">
       <iframe id="videoFrame" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
+      <div class="modal-controls">
+        <div>
+          <button id="prevVideo">⏮ السابق</button>
+          <button id="nextVideo">⏭ التالي</button>
+        </div>
+        <div>
+          <button id="fullscreenBtn">⛶ تكبير/تدوير</button>
+          <button id="closeModal" style="color:#ff6b6b;">✖ إغلاق</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -219,6 +267,8 @@ backBtn.onclick = () => {
 };
 
 let currentVideos = [];
+let currentIndex = 0;
+let rotated = false;
 
 function isYouTubeUrl(url) {
   return /youtu\.be|youtube\.com/.test(url);
@@ -231,6 +281,31 @@ function getYouTubeId(url) {
     const m = u.pathname.match(/\/embed\/([^/?#]+)/);
     return m ? m[1] : '';
   } catch { return ''; }
+}
+
+function openVideo(index) {
+  currentIndex = index;
+  const video = currentVideos[currentIndex];
+  if (!video) return;
+  const videoFrame = document.getElementById('videoFrame');
+  if (isYouTubeUrl(video.url)) {
+    const id = getYouTubeId(video.url);
+    videoFrame.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+  } else {
+    videoFrame.src = video.url;
+  }
+  const videoModal = document.getElementById('videoModal');
+  videoModal.style.display = 'flex';
+  videoModal.setAttribute('aria-hidden', 'false');
+  rotated = false;
+  document.querySelector('#videoModal .modal-wrap').classList.remove('video-rotated');
+}
+
+function closeVideo() {
+  const videoModal = document.getElementById('videoModal');
+  videoModal.style.display = 'none';
+  videoModal.setAttribute('aria-hidden', 'true');
+  document.getElementById('videoFrame').src = '';
 }
 
 onValue(ref(db, 'videos'), snapshot => {
@@ -266,13 +341,54 @@ onValue(ref(db, 'videos'), snapshot => {
 
     if(youtube){
       box.querySelector('.thumb').addEventListener('click', () => {
-        document.getElementById('videoFrame').src = `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`;
-        document.getElementById('videoModal').style.display = 'flex';
+        openVideo(idx);
       });
     }
 
     videosContainer.appendChild(box);
   });
+});
+
+// أزرار الموديل
+document.getElementById('closeModal').addEventListener('click', closeVideo);
+
+document.getElementById('nextVideo').addEventListener('click', () => {
+  if(currentVideos.length === 0) return;
+  currentIndex = (currentIndex + 1) % currentVideos.length;
+  openVideo(currentIndex);
+});
+
+document.getElementById('prevVideo').addEventListener('click', () => {
+  if(currentVideos.length === 0) return;
+  currentIndex = (currentIndex - 1 + currentVideos.length) % currentVideos.length;
+  openVideo(currentIndex);
+});
+
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+  const wrap = document.querySelector('#videoModal .modal-wrap');
+  if(!wrap) return;
+  if(!rotated){
+    wrap.classList.add("video-rotated");
+    rotated = true;
+  } else {
+    wrap.classList.remove("video-rotated");
+    rotated = false;
+  }
+  if(wrap.requestFullscreen) wrap.requestFullscreen();
+  else if(wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
+  else if(wrap.msRequestFullscreen) wrap.msRequestFullscreen();
+});
+
+// إغلاق الموديل عند الضغط على الخلفية أو زر Escape
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && document.getElementById('videoModal').style.display === 'flex') {
+    closeVideo();
+  }
+});
+document.getElementById('videoModal').addEventListener('click', e => {
+  if(e.target === document.getElementById('videoModal')) {
+    closeVideo();
+  }
 });
 
 // ✅ دالة Toast
