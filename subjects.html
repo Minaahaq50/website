@@ -11,10 +11,76 @@
     font-family: 'Cairo', sans-serif;
     background: #121212;
     color: #fff;
-    padding: 30px 15px;
+    padding: 80px 15px 30px;
     margin: 0;
+    transition: background 0.3s, color 0.3s;
   }
 
+  /* ===== الشريط العلوي ===== */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #111;
+    padding: 10px 15px;
+    color: white;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1000;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .menu-btn {
+    font-size: 22px;
+    cursor: pointer;
+  }
+
+  .title {
+    font-size: 14px;
+    color: #f36;
+  }
+
+  .icons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .icons img {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+  }
+
+  .toggle-dark {
+    background: #fff;
+    border-radius: 12px;
+    width: 40px;
+    height: 20px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .toggle-dark::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #111;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+
+  .toggle-dark.active::after {
+    left: 22px;
+    background: #ff0;
+  }
+
+  /* ===== باقي التنسيقات ===== */
   h1 {
     color: #ffd700;
     text-align: center;
@@ -58,7 +124,6 @@
     box-shadow: 0 5px 15px rgba(255, 215, 0, 0.5);
   }
 
-  /* الدائرة التي تحتوي الصورة */
   .circle {
     width: 100px;
     height: 100px;
@@ -78,14 +143,12 @@
     object-fit: contain;
   }
 
-  /* اسم المادة */
   li span {
     font-weight: 700;
     font-size: 1.2rem;
     text-align: center;
   }
 
-  /* رسالة التحميل أو لا توجد مواد */
   li.loading {
     cursor: default;
     color: #aaa;
@@ -93,11 +156,10 @@
     box-shadow: none;
     font-weight: 400;
     font-size: 1rem;
-    grid-column: 1 / -1; /* يشغل كامل العرض */
+    grid-column: 1 / -1;
     text-align: center;
   }
 
-  /* لودر متحرك */
   li.loading::after {
     content: "";
     width: 28px;
@@ -113,6 +175,21 @@
 
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+
+  /* ===== وضع الفاتح ===== */
+  body.light-mode {
+    background: #f5f5f5;
+    color: #000;
+  }
+  body.light-mode .topbar {
+    background: #fff;
+    color: #000;
+  }
+  body.light-mode li {
+    background: #fff;
+    color: #000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
   }
 
   @media (max-width: 480px) {
@@ -137,7 +214,25 @@
 </style>
 </head>
 <body>
-  <h1>المواد الخاصه ب منصه دروسك اون لاين</h1>
+
+  <!-- ✅ الشريط العلوي -->
+  <div class="topbar">
+    <div class="menu-btn">☰</div>
+    <div class="title">دروسك اون لاين 2026</div>
+    <div class="icons">
+      <div class="toggle-dark" id="darkToggle"></div>
+      <!-- واتساب -->
+      <a href="https://whatsapp.com/channel/0029Vb6mJg61SWsuotwwDR0R" target="_blank">
+        <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp">
+      </a>
+      <!-- مشاركة -->
+      <img id="shareBtn" src="https://cdn-icons-png.flaticon.com/512/929/929610.png" alt="Share">
+      <!-- إشعارات -->
+      <img id="notifyBtn" src="https://cdn-icons-png.flaticon.com/512/1827/1827272.png" alt="Notification">
+    </div>
+  </div>
+
+  <h1>المواد الخاصة بمنصة دروسك أون لاين</h1>
   <ul id="subjects-list">
     <li class="loading">جارٍ التحميل...</li>
   </ul>
@@ -161,7 +256,6 @@
 
     const subjectsList = document.getElementById('subjects-list');
 
-    // خريطة لصور المواد
     const subjectImages = {
       "أحياء": "https://www2.0zz0.com/2025/09/30/15/923573836.png",
       "فيزياء": "https://www2.0zz0.com/2025/09/30/15/161746092.jpeg",
@@ -170,55 +264,76 @@
       "إنجليزي": "https://www2.0zz0.com/2025/09/30/15/572118063.jpeg",
     };
 
-    onValue(
-      ref(db, 'videos'),
-      snapshot => {
-        const data = snapshot.val() || {};
-        const subjects = new Set();
+    onValue(ref(db, 'videos'), snapshot => {
+      const data = snapshot.val() || {};
+      const subjects = new Set();
 
-        Object.values(data).forEach(v => {
-          if (v.subject) subjects.add(v.subject);
-        });
+      Object.values(data).forEach(v => {
+        if (v.subject) subjects.add(v.subject);
+      });
 
-        subjectsList.innerHTML = '';
+      subjectsList.innerHTML = '';
 
-        if (subjects.size === 0) {
-          subjectsList.innerHTML = '<li class="loading">لا توجد مواد.</li>';
-          return;
-        }
-
-        // ترتيب أبجدي
-        [...subjects].sort().forEach(subject => {
-          const li = document.createElement('li');
-
-          // إنشاء الدائرة مع الصورة
-          const circle = document.createElement('div');
-          circle.className = 'circle';
-
-          const img = document.createElement('img');
-          img.src = subjectImages[subject] || 'https://img.icons8.com/ios-filled/100/ffd700/book.png';
-          img.alt = subject;
-          circle.appendChild(img);
-
-          // اسم المادة
-          const span = document.createElement('span');
-          span.textContent = subject;
-
-          li.appendChild(circle);
-          li.appendChild(span);
-
-          li.onclick = () => {
-            window.location.href = `teachers.html?subject=${encodeURIComponent(subject)}`;
-          };
-
-          subjectsList.appendChild(li);
-        });
-      },
-      error => {
-        subjectsList.innerHTML = '<li class="loading">⚠️ خطأ في تحميل البيانات</li>';
-        console.error(error);
+      if (subjects.size === 0) {
+        subjectsList.innerHTML = '<li class="loading">لا توجد مواد.</li>';
+        return;
       }
-    );
+
+      [...subjects].sort().forEach(subject => {
+        const li = document.createElement('li');
+        const circle = document.createElement('div');
+        circle.className = 'circle';
+
+        const img = document.createElement('img');
+        img.src = subjectImages[subject] || 'https://img.icons8.com/ios-filled/100/ffd700/book.png';
+        img.alt = subject;
+        circle.appendChild(img);
+
+        const span = document.createElement('span');
+        span.textContent = subject;
+
+        li.appendChild(circle);
+        li.appendChild(span);
+
+        li.onclick = () => {
+          window.location.href = `teachers.html?subject=${encodeURIComponent(subject)}`;
+        };
+
+        subjectsList.appendChild(li);
+      });
+    }, error => {
+      subjectsList.innerHTML = '<li class="loading">⚠️ خطأ في تحميل البيانات</li>';
+      console.error(error);
+    });
+
+    // ✅ زر الوضع الليلي والفاتح
+    const toggle = document.getElementById("darkToggle");
+    toggle.addEventListener("click", () => {
+      toggle.classList.toggle("active");
+      document.body.classList.toggle("light-mode");
+    });
+
+    // ✅ زر المشاركة
+    document.getElementById("shareBtn").addEventListener("click", async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "تطبيق دروسك أون لاين",
+            text: "جرب تطبيق دروسك أون لاين 2026 📚✨",
+            url: window.location.href
+          });
+        } catch (err) {
+          console.log("المشاركة أُلغيت");
+        }
+      } else {
+        alert("المشاركة غير مدعومة في متصفحك 😢");
+      }
+    });
+
+    // ✅ زر الإشعارات
+    document.getElementById("notifyBtn").addEventListener("click", () => {
+      alert("الإشعارات هتتفعل قريبًا 🔔");
+    });
   </script>
 </body>
-</html
+</html>
