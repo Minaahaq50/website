@@ -222,6 +222,42 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
 
+  /* ✅ زر البروفايل العائم */
+  .profile-float-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: #222;
+    border: 2px solid #ffd700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    transition: 0.3s;
+    z-index: 1200;
+  }
+  .profile-float-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(255,215,0,0.6);
+    background: #ffd700;
+  }
+  .profile-float-btn img {
+    width: 28px;
+    height: 28px;
+  }
+  body.light-mode .profile-float-btn {
+    background: #fff;
+    border: 2px solid #333;
+  }
+  body.light-mode .profile-float-btn:hover {
+    background: #333;
+    border-color: #ffd700;
+  }
+
   @media (max-width: 480px) {
     h1 {
       font-size: 2rem;
@@ -239,6 +275,16 @@
     }
     li span {
       font-size: 1rem;
+    }
+    .profile-float-btn {
+      width: 45px;
+      height: 45px;
+      bottom: 15px;
+      left: 15px;
+    }
+    .profile-float-btn img {
+      width: 22px;
+      height: 22px;
     }
   }
 </style>
@@ -269,6 +315,11 @@
   <ul id="subjects-list">
     <li class="loading">جارٍ التحميل...</li>
   </ul>
+
+  <!-- ✅ زر بروفايل عائم -->
+  <a href="profile.html" class="profile-float-btn">
+    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="بروفايل">
+  </a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
