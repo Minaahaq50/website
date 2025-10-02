@@ -196,7 +196,7 @@
       <div class="progress-bar" id="progressBar"></div>
     </div>
 
-    <button class="logout-btn" onclick="logout()">🚪 تسجيل خروج</button>
+    <button class="logout-btn" onclick="logout()">🚪 العوده الي قائمه المواد</button>
   </div>
 
 <script>
@@ -276,14 +276,14 @@
           }
         } else {
           localStorage.removeItem("approved");
-          window.location.href = "index.html";
+          window.location.href = "subjects.html";
         }
       });
   }
 
   function logout() {
     localStorage.clear();
-    window.location.href = "index.html";
+    window.location.href = "subjects.html";
   }
 
   loadProfile();
