@@ -5,426 +5,228 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>الفيديوهات - منصة THE BEST</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
-
-  body {
-    font-family: 'Cairo', sans-serif;
-    background: #121212;
-    color: #fff;
-    padding: 80px 15px 30px;
-    margin: 0;
-    transition: background 0.3s, color 0.3s;
-  }
-
-  /* ===== الشريط العلوي ===== */
-  .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #111;
-    padding: 10px 15px;
-    color: white;
-    position: fixed;
-    top: 0;
-    right: 0;
-    left: 0;
-    z-index: 1000;
-    transition: background 0.3s, color 0.3s;
-  }
-
-  .menu-btn {
-    font-size: 22px;
-    cursor: pointer;
-  }
-
-  .title {
-    font-size: 14px;
-    color: #f36;
-  }
-
-  .icons {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .icons img {
-    width: 22px;
-    height: 22px;
-    cursor: pointer;
-  }
-
-  .toggle-dark {
-    background: #fff;
-    border-radius: 12px;
-    width: 40px;
-    height: 20px;
-    position: relative;
-    cursor: pointer;
-  }
-
-  .toggle-dark::after {
-    content: "";
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 16px;
-    height: 16px;
-    background: #111;
-    border-radius: 50%;
-    transition: 0.3s;
-  }
-
-  .toggle-dark.active::after {
-    left: 22px;
-    background: #ff0;
-  }
-
-  h1 {
-    color: #ffd700;
-    text-align: center;
-    margin-bottom: 20px;
-    text-shadow: 0 0 8px #ffd700;
-  }
-
+  body { font-family: 'Cairo', sans-serif; background:#0d0d0d; color:#fff; padding:20px; }
+  h1 { color:#ffd700; text-align:center; margin-bottom: 10px; }
+  #back { color:#ffd700; cursor:pointer; text-align:center; margin-bottom:20px; }
   #videos-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;
   }
-
   .video-box {
-    background:#1a1a1a; 
-    padding:10px; 
-    border-radius:12px;
+    background:#1a1a1a; padding:10px; border-radius:12px;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
     transition: transform 0.2s ease-in-out, box-shadow 0.2s;
   }
-  .video-box:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-  }
-  .video-title { margin:10px 0 6px; font-size:18px; color:#ffd700; text-align:center; }
-  .video-teacher { text-align:center; font-size:14px; margin-bottom:10px; color:#bbb; }
-  .thumb {
-    position:relative; cursor:pointer; border-radius:10px; overflow:hidden;
-    background:#000; height:200px; display:flex; align-items:center; justify-content:center;
-  }
+  .video-box:hover { transform: translateY(-5px); box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+  .video-title { margin: 10px 0 6px 0; font-size: 18px; color: #ffd700; text-align: center; }
+  .video-teacher { text-align: center; font-size: 14px; margin-bottom: 10px; color: #bbb; }
+  .thumb { position:relative; cursor:pointer; border-radius:10px; overflow:hidden; background:#000; height:200px; display:flex; align-items:center; justify-content:center; }
   .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
   .thumb .play-btn { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:50px; color:#ffd700; text-shadow:0 0 10px rgba(0,0,0,.9); }
 
-  /* موديل الفيديو */
-  #videoModal {
+  /* مودال الفيديو */
+  #videoModal { 
     display:none; 
-    position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000;
-    align-items:center; justify-content:center; padding:20px;
+    position:fixed; inset:0; 
+    background:rgba(0,0,0,0.95); 
+    z-index:10000; 
+    align-items:center; 
+    justify-content:center; 
+    padding:20px; 
   }
   #videoModal .modal-wrap { 
-    width:100%; max-width:980px; background:#000; border-radius:12px; overflow:hidden; 
-    position: relative;
+    width:100%; 
+    max-width:980px; 
+    background:#000; 
+    border-radius:12px; 
+    overflow:hidden; 
+    position:relative; 
   }
-  #videoModal iframe { width:100%; height:560px; border:0; display:block; background:#000; }
+  #videoModal iframe { 
+    width:100%; 
+    height:560px; 
+    border:0; 
+    display:block; 
+    position:relative; 
+    z-index:1; 
+  }
 
-  /* أزرار التحكم في الموديل */
-  #videoModal .modal-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background: #111;
+  /* زر الإغلاق */
+  #closeBtn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 9999;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 215, 0, 0.4);
     color: #ffd700;
-    font-weight: bold;
-  }
-  #videoModal .modal-controls button {
-    background: none;
-    border: 1px solid #333;
-    padding: 8px 12px;
-    border-radius: 8px;
     cursor: pointer;
-    color: #ffd700;
-    transition: background 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(255,215,0,0.3);
+    transition: 0.3s;
   }
-  #videoModal .modal-controls button:hover {
-    background: #222;
-    color: #fff;
-  }
-
-  /* تدوير الفيديو */
-  .video-rotated {
-    transform: rotate(90deg);
-    transform-origin: center center;
-    width: 100vh !important;
-    height: 100vw !important;
-    transition: all 0.5s ease;
-  }
-
-  #toast {
-    visibility: hidden;
-    min-width: 260px;
-    background: #1e1e1e;
-    color: #ffd700;
-    text-align: center;
-    border-radius: 12px;
-    padding: 14px;
-    position: fixed;
-    z-index: 2000;
-    left: 50%;
-    bottom: 30px;
-    transform: translateX(-50%);
-    font-size: 1rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    opacity: 0;
-    transition: opacity 0.5s, bottom 0.5s;
-  }
-  #toast.show {
-    visibility: visible;
-    opacity: 1;
-    bottom: 50px;
-  }
-
-  body.light-mode {
-    background: #f5f5f5;
+  #closeBtn svg { width: 26px; height: 26px; stroke: currentColor; }
+  #closeBtn:hover {
+    background: rgba(255,215,0,0.9);
     color: #000;
+    transform: scale(1.15) rotate(90deg);
   }
-  body.light-mode .topbar { background: #fff; color: #000; }
-  body.light-mode .video-box { background: #fff; color: #000; box-shadow:0 2px 10px rgba(0,0,0,0.15);}
-  body.light-mode #toast { background:#fff; color:#333; }
-
 </style>
 </head>
 <body>
-
-  <!-- ✅ الشريط العلوي -->
-  <div class="topbar">
-    <div class="menu-btn" id="backBtn">⬅</div>
-    <div class="title">الفيديوهات</div>
-    <div class="icons">
-      <div class="toggle-dark" id="darkToggle"></div>
-      <a href="https://whatsapp.com/channel/0029Vb6mJg61SWsuotwwDR0R" target="_blank">
-        <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp">
-      </a>
-      <img id="shareBtn" src="https://cdn-icons-png.flaticon.com/512/929/929610.png" alt="Share">
-      <img id="notifyBtn" src="https://cdn-icons-png.flaticon.com/512/1827/1827272.png" alt="Notification">
-    </div>
-  </div>
-
-  <!-- ✅ Toast -->
-  <div id="toast">الإشعارات هتتفعل قريبًا 🔔✨</div>
-
   <h1>الفيديوهات</h1>
+  <div id="back">⬅ العودة إلى المدرسين</div>
   <div id="videos-container">
     <div style="text-align:center; font-size:18px; color:#ffd700;">جارٍ التحميل...</div>
   </div>
 
-  <!-- موديل الفيديو -->
+  <!-- المودال -->
   <div id="videoModal" aria-hidden="true">
     <div class="modal-wrap">
+      <button id="closeBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
       <iframe id="videoFrame" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
-      <div class="modal-controls">
-        <div>
-          <button id="prevVideo">⏮ السابق</button>
-          <button id="nextVideo">⏭ التالي</button>
-        </div>
-        <div>
-          <button id="fullscreenBtn">⛶ تكبير/تدوير</button>
-          <button id="closeModal" style="color:#ff6b6b;">✖ إغلاق</button>
-        </div>
-      </div>
     </div>
   </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCdhj73cKJc2J2_tDHw2-89EemZx-EGMJQ",
-  authDomain: "alamer-526ff.firebaseapp.com",
-  databaseURL: "https://alamer-526ff-default-rtdb.firebaseio.com",
-  projectId: "alamer-526ff",
-  storageBucket: "alamer-526ff.firebasestorage.app",
-  messagingSenderId: "523879269039",
-  appId: "1:523879269039:web:634861aa34641bfebf8a5a",
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyCdhj73cKJc2J2_tDHw2-89EemZx-EGMJQ",
+      authDomain: "alamer-526ff.firebaseapp.com",
+      databaseURL: "https://alamer-526ff-default-rtdb.firebaseio.com",
+      projectId: "alamer-526ff",
+      storageBucket: "alamer-526ff.firebasestorage.app",
+      messagingSenderId: "523879269039",
+      appId: "1:523879269039:web:634861aa34641bfebf8a5a",
+    };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-const urlParams = new URLSearchParams(window.location.search);
-const subject = urlParams.get('subject');
-const teacher = urlParams.get('teacher');
-const chapter = urlParams.get('chapter');
+    const urlParams = new URLSearchParams(window.location.search);
+    const subject = urlParams.get('subject');
+    const teacher = urlParams.get('teacher');
+    const chapter = urlParams.get('chapter');
 
-const videosContainer = document.getElementById('videos-container');
-const backBtn = document.getElementById('backBtn');
+    const videosContainer = document.getElementById('videos-container');
+    const backBtn = document.getElementById('back');
+    const videoModal = document.getElementById('videoModal');
+    const videoFrame = document.getElementById('videoFrame');
+    const closeBtn = document.getElementById('closeBtn');
 
-backBtn.onclick = () => {
-  if(subject){
-    window.location.href = `teachers.html?subject=${encodeURIComponent(subject)}`;
-  } else {
-    window.location.href = 'subjects.html';
-  }
-};
+    backBtn.onclick = () => {
+      if(subject){
+        window.location.href = `teachers.html?subject=${encodeURIComponent(subject)}`;
+      } else {
+        window.location.href = 'subjects.html';
+      }
+    };
 
-let currentVideos = [];
-let currentIndex = 0;
-let rotated = false;
-
-function isYouTubeUrl(url) {
-  return /youtu\.be|youtube\.com/.test(url);
-}
-function getYouTubeId(url) {
-  try {
-    const u = new URL(url);
-    if(u.hostname.includes('youtu.be')) return u.pathname.replace('/','');
-    if(u.searchParams.get('v')) return u.searchParams.get('v');
-    const m = u.pathname.match(/\/embed\/([^/?#]+)/);
-    return m ? m[1] : '';
-  } catch { return ''; }
-}
-
-function openVideo(index) {
-  currentIndex = index;
-  const video = currentVideos[currentIndex];
-  if (!video) return;
-  const videoFrame = document.getElementById('videoFrame');
-  if (isYouTubeUrl(video.url)) {
-    const id = getYouTubeId(video.url);
-    videoFrame.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
-  } else {
-    videoFrame.src = video.url;
-  }
-  const videoModal = document.getElementById('videoModal');
-  videoModal.style.display = 'flex';
-  videoModal.setAttribute('aria-hidden', 'false');
-  rotated = false;
-  document.querySelector('#videoModal .modal-wrap').classList.remove('video-rotated');
-}
-
-function closeVideo() {
-  const videoModal = document.getElementById('videoModal');
-  videoModal.style.display = 'none';
-  videoModal.setAttribute('aria-hidden', 'true');
-  document.getElementById('videoFrame').src = '';
-}
-
-onValue(ref(db, 'videos'), snapshot => {
-  const data = snapshot.val() || {};
-  if(!subject || !teacher || !chapter){
-    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لم يتم تحديد المادة أو المدرس أو الباب.</div>';
-    return;
-  }
-
-  currentVideos = Object.values(data).filter(v => 
-    v.subject === subject && v.teacher === teacher && v.chapter === chapter
-  );
-
-  if(currentVideos.length === 0){
-    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد فيديوهات في هذا الباب.</div>';
-    return;
-  }
-
-  videosContainer.innerHTML = '';
-  currentVideos.forEach((video, idx) => {
-    const box = document.createElement('div');
-    box.className = 'video-box';
-    const youtube = isYouTubeUrl(video.url);
-    const ytId = youtube ? getYouTubeId(video.url) : '';
-    const thumb = video.imageUrl || (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'https://via.placeholder.com/300x200?text=VIDEO');
-
-    box.innerHTML = `
-      <div class="video-title">${video.title}</div>
-      <div class="video-teacher">المدرس: ${video.teacher} | ${video.chapter}</div>
-      ${youtube ? `<div class="thumb" data-idx="${idx}"><img src="${thumb}"><div class="play-btn">▶</div></div>` :
-      `<video controls poster="${thumb}" style="width:100%; height:250px; border-radius:10px;"><source src="${video.url}" type="video/mp4"></video>`}
-    `;
-
-    if(youtube){
-      box.querySelector('.thumb').addEventListener('click', () => {
-        openVideo(idx);
-      });
+    function isYouTubeUrl(url) {
+      return /youtu\.be|youtube\.com/.test(url);
+    }
+    function getYouTubeId(url) {
+      try {
+        const u = new URL(url);
+        if(u.hostname.includes('youtu.be')) return u.pathname.replace('/','');
+        if(u.searchParams.get('v')) return u.searchParams.get('v');
+        const m = u.pathname.match(/\/embed\/([^/?#]+)/);
+        return m ? m[1] : '';
+      } catch { return ''; }
     }
 
-    videosContainer.appendChild(box);
-  });
-});
+    // تشغيل الفيديو fullscreen
+    function playVideo(ytId) {
+      videoFrame.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`;
+      videoModal.style.display = 'flex';
 
-// أزرار الموديل
-document.getElementById('closeModal').addEventListener('click', closeVideo);
+      // fullscreen
+      if (!document.fullscreenElement) {
+        videoModal.requestFullscreen().catch(()=>{});
+      }
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock("landscape").catch(()=>{});
+      }
 
-document.getElementById('nextVideo').addEventListener('click', () => {
-  if(currentVideos.length === 0) return;
-  currentIndex = (currentIndex + 1) % currentVideos.length;
-  openVideo(currentIndex);
-});
+      // إضافة state عشان زر الرجوع يقفل الفيديو
+      history.pushState({video:true}, "", location.href);
+    }
 
-document.getElementById('prevVideo').addEventListener('click', () => {
-  if(currentVideos.length === 0) return;
-  currentIndex = (currentIndex - 1 + currentVideos.length) % currentVideos.length;
-  openVideo(currentIndex);
-});
+    // زر الإغلاق
+    closeBtn.addEventListener("click", () => {
+      closeVideo();
+    });
 
-document.getElementById('fullscreenBtn').addEventListener('click', () => {
-  const wrap = document.querySelector('#videoModal .modal-wrap');
-  if(!wrap) return;
-  if(!rotated){
-    wrap.classList.add("video-rotated");
-    rotated = true;
-  } else {
-    wrap.classList.remove("video-rotated");
-    rotated = false;
-  }
-  if(wrap.requestFullscreen) wrap.requestFullscreen();
-  else if(wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
-  else if(wrap.msRequestFullscreen) wrap.msRequestFullscreen();
-});
+    function closeVideo(){
+      videoModal.style.display = 'none';
+      videoFrame.src = "";
+      if(document.fullscreenElement){
+        document.exitFullscreen();
+      }
+    }
 
-// إغلاق الموديل عند الضغط على الخلفية أو زر Escape
-document.addEventListener('keydown', e => {
-  if(e.key === 'Escape' && document.getElementById('videoModal').style.display === 'flex') {
-    closeVideo();
-  }
-});
-document.getElementById('videoModal').addEventListener('click', e => {
-  if(e.target === document.getElementById('videoModal')) {
-    closeVideo();
-  }
-});
+    // التحكم في زر الرجوع بتاع الموبايل
+    window.addEventListener("popstate", () => {
+      if (videoModal.style.display === "flex") {
+        closeVideo();
+        history.pushState(null, "", location.href); // نحافظ إننا في نفس الصفحة
+      }
+    });
 
-// ✅ دالة Toast
-function showToast(msg) {
-  const toast = document.getElementById("toast");
-  toast.textContent = msg;
-  toast.className = "show";
-  setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
-}
+    // جلب الفيديوهات من Firebase
+    onValue(ref(db, 'videos'), snapshot => {
+      const data = snapshot.val() || {};
+      if(!subject || !teacher || !chapter){
+        videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لم يتم تحديد المادة أو المدرس أو الباب.</div>';
+        return;
+      }
 
-// ✅ زر الوضع الليلي
-const toggle = document.getElementById("darkToggle");
-toggle.addEventListener("click", () => {
-  toggle.classList.toggle("active");
-  document.body.classList.toggle("light-mode");
-});
+      const currentVideos = Object.values(data).filter(v => 
+        v.subject === subject && v.teacher === teacher && v.chapter === chapter
+      );
 
-// ✅ زر المشاركة
-document.getElementById("shareBtn").addEventListener("click", async () => {
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: "تطبيق دروسك أون لاين",
-        text: "جرب تطبيق دروسك أون لاين 2026 📚✨",
-        url: window.location.href
+      if(currentVideos.length === 0){
+        videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد فيديوهات في هذا الباب.</div>';
+        return;
+      }
+
+      videosContainer.innerHTML = '';
+      currentVideos.forEach((video, idx) => {
+        const box = document.createElement('div');
+        box.className = 'video-box';
+        const youtube = isYouTubeUrl(video.url);
+        const ytId = youtube ? getYouTubeId(video.url) : '';
+        const thumb = video.imageUrl || (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'https://via.placeholder.com/300x200?text=VIDEO');
+
+        box.innerHTML = `
+          <div class="video-title">${video.title}</div>
+          <div class="video-teacher">المدرس: ${video.teacher} | ${video.chapter}</div>
+          ${youtube ? `<div class="thumb" data-idx="${idx}"><img src="${thumb}"><div class="play-btn">▶</div></div>` :
+          `<video controls poster="${thumb}" style="width:100%; height:250px; border-radius:10px;"><source src="${video.url}" type="video/mp4"></video>`}
+        `;
+
+        if(youtube){
+          box.querySelector('.thumb').addEventListener('click', () => {
+            playVideo(ytId);
+          });
+        }
+
+        videosContainer.appendChild(box);
       });
-    } catch (err) { showToast("❌ تم إلغاء المشاركة"); }
-  } else {
-    showToast("المشاركة غير مدعومة في متصفحك 😢");
-  }
-});
-
-// ✅ زر الإشعارات → Toast
-document.getElementById("notifyBtn").addEventListener("click", () => {
-  showToast("الإشعارات هتتفعل قريبًا 🔔✨");
-});
-</script>
+    });
+  </script>
 </body>
 </html>
