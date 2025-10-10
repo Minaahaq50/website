@@ -221,7 +221,7 @@
   <!-- ✅ Toast -->
   <div id="toast">الإشعارات هتتفعل قريبًا 🔔✨</div>
 
-  <h1>مدرسين الماده</h1>
+  <h1 id="subject-title">جارٍ التحميل...</h1>
   <ul id="teachers-list">
     <li>جارٍ التحميل...</li>
   </ul>
@@ -370,6 +370,66 @@
     document.getElementById("notifyBtn").addEventListener("click", () => {
       showToast("الإشعارات هتتفعل قريبًا 🔔✨");
     });
+
+    // 🟢 جلب اسم المادة من رابط الصفحة
+const params = new URLSearchParams(window.location.search);
+const subject = params.get("subject");
+
+// 🟡 عرض اسم المادة في العنوان
+const title = document.getElementById("subject-title");
+if (subject) {
+  title.textContent = `مدرسين مادة ${subject}`;
+} else {
+  title.textContent = "اختر مادة لعرض المدرسين 👇";
+    }
+
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
+
+const db = getDatabase();
+
+const teachersList = document.getElementById("teachers-list");
+
+onValue(ref(db, "videos"), snapshot => {
+  const data = snapshot.val() || {};
+  const teachers = {};
+
+  // 🔍 جمع كل المدرسين اللي يدرّسوا نفس المادة
+  Object.values(data).forEach(v => {
+    if (v.subject === subject && v.teacher) {
+      teachers[v.teacher] = v.teacherImage || "https://img.icons8.com/ios-filled/100/ffd700/teacher.png";
+    }
+  });
+
+  teachersList.innerHTML = "";
+
+  if (Object.keys(teachers).length === 0) {
+    teachersList.innerHTML = '<li class="loading">لا يوجد مدرسين لهذه المادة 😢</li>';
+    return;
+  }
+
+  Object.entries(teachers).forEach(([name, imgSrc]) => {
+    const li = document.createElement("li");
+
+    const circle = document.createElement("div");
+    circle.className = "circle";
+    const img = document.createElement("img");
+    img.src = imgSrc;
+    circle.appendChild(img);
+
+    const span = document.createElement("span");
+    span.textContent = name;
+
+    li.appendChild(circle);
+    li.appendChild(span);
+
+    // عند الضغط على المدرس، تروح لصفحة الدروس الخاصة به
+    li.onclick = () => {
+      window.location.href = `videos.html?subject=${encodeURIComponent(subject)}&teacher=${encodeURIComponent(name)}`;
+    };
+
+    teachersList.appendChild(li);
+  });
+});
   </script>
 </body>
 </html>
