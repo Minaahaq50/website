@@ -216,7 +216,7 @@ function openVideo(index) {
   const video = currentVideos[index];
   if (!video) return;
   window.location.href = `player.html?url=${encodeURIComponent(video.url)}`;
-  }
+}
 
   const videoFrame = document.getElementById('videoFrame');
   const wrap = document.querySelector('#videoModal .modal-wrap');
