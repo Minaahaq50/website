@@ -15,7 +15,6 @@
     transition: background 0.3s, color 0.3s;
   }
 
-  /* ===== الشريط العلوي ===== */
   .topbar {
     display: flex;
     align-items: center;
@@ -76,38 +75,6 @@
     font-size:50px; color:#ffd700; text-shadow:0 0 10px rgba(0,0,0,.9);
   }
 
-  /* موديل الفيديو */
-  #videoModal {
-    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000;
-    align-items:center; justify-content:center; padding:20px;
-  }
-  #videoModal .modal-wrap {
-    width:100%; max-width:980px; background:#000; border-radius:12px; overflow:hidden;
-    position: relative;
-  }
-  #videoModal iframe, #videoModal video {
-    width:100%; height:560px; border:0; display:block; background:#000;
-  }
-
-  /* أزرار التحكم في الموديل */
-  #videoModal .modal-controls {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px; background: #111; color: #ffd700; font-weight: bold;
-  }
-  #videoModal .modal-controls button {
-    background: none; border: 1px solid #333; padding: 8px 12px;
-    border-radius: 8px; cursor: pointer; color: #ffd700;
-    transition: background 0.2s, color 0.2s;
-  }
-  #videoModal .modal-controls button:hover { background: #222; color: #fff; }
-
-  .video-rotated {
-    transform: rotate(90deg);
-    transform-origin: center center;
-    width: 100vh !important; height: 100vw !important;
-    transition: all 0.5s ease;
-  }
-
   #toast {
     visibility: hidden; min-width: 260px; background: #1e1e1e;
     color: #ffd700; text-align: center; border-radius: 12px;
@@ -125,7 +92,6 @@
 </style>
 </head>
 <body>
-  <!-- ✅ الشريط العلوي -->
   <div class="topbar">
     <div class="menu-btn" id="backBtn">⬅</div>
     <div class="title">الفيديوهات</div>
@@ -139,29 +105,11 @@
     </div>
   </div>
 
-  <!-- ✅ Toast -->
   <div id="toast">الإشعارات هتتفعل قريبًا 🔔✨</div>
 
   <h1>الفيديوهات</h1>
   <div id="videos-container">
     <div style="text-align:center; font-size:18px; color:#ffd700;">جارٍ التحميل...</div>
-  </div>
-
-  <!-- موديل الفيديو -->
-  <div id="videoModal" aria-hidden="true">
-    <div class="modal-wrap">
-      <iframe id="videoFrame" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
-      <div class="modal-controls">
-        <div>
-          <button id="prevVideo">⏮ السابق</button>
-          <button id="nextVideo">⏭ التالي</button>
-        </div>
-        <div>
-          <button id="fullscreenBtn">⛶ تكبير/تدوير</button>
-          <button id="closeModal" style="color:#ff6b6b;">✖ إغلاق</button>
-        </div>
-      </div>
-    </div>
   </div>
 
 <script type="module">
@@ -198,8 +146,6 @@ backBtn.onclick = () => {
 };
 
 let currentVideos = [];
-let currentIndex = 0;
-let rotated = false;
 
 function isYouTubeUrl(url) { return /youtu\.be|youtube\.com/.test(url); }
 function getYouTubeId(url) {
@@ -212,46 +158,17 @@ function getYouTubeId(url) {
   } catch { return ''; }
 }
 
+// ✅ هنا التعديل
 function openVideo(index) {
   const video = currentVideos[index];
   if (!video) return;
-  window.location.href = `player.html?url=${encodeURIComponent(video.url)}`;
-}
 
-  const videoFrame = document.getElementById('videoFrame');
-  const wrap = document.querySelector('#videoModal .modal-wrap');
+  const videoUrl = encodeURIComponent(video.url);
+  const videoTitle = encodeURIComponent(video.title);
+  const teacherName = encodeURIComponent(video.teacher);
+  const chapterName = encodeURIComponent(video.chapter);
 
-  if (isYouTubeUrl(video.url)) {
-    const id = getYouTubeId(video.url);
-    videoFrame.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
-    videoFrame.style.display = "block";
-    if (document.getElementById("modalVideo")) document.getElementById("modalVideo").remove();
-  } else {
-    videoFrame.style.display = "none";
-    if (document.getElementById("modalVideo")) document.getElementById("modalVideo").remove();
-    const vid = document.createElement("video");
-    vid.id = "modalVideo";
-    vid.src = video.url;
-    vid.controls = true;
-    vid.autoplay = true;
-    vid.style.width = "100%";
-    vid.style.height = "560px";
-    wrap.insertBefore(vid, wrap.firstChild);
-  }
-
-  const videoModal = document.getElementById('videoModal');
-  videoModal.style.display = 'flex';
-  videoModal.setAttribute('aria-hidden', 'false');
-  rotated = false;
-  wrap.classList.remove('video-rotated');
-}
-
-function closeVideo() {
-  const videoModal = document.getElementById('videoModal');
-  videoModal.style.display = 'none';
-  videoModal.setAttribute('aria-hidden', 'true');
-  document.getElementById('videoFrame').src = '';
-  if (document.getElementById("modalVideo")) document.getElementById("modalVideo").remove();
+  window.location.href = `player.html?url=${videoUrl}&title=${videoTitle}&teacher=${teacherName}&chapter=${chapterName}`;
 }
 
 onValue(ref(db, 'videos'), snapshot => {
@@ -293,33 +210,7 @@ onValue(ref(db, 'videos'), snapshot => {
   });
 });
 
-// أزرار الموديل
-document.getElementById('closeModal').addEventListener('click', closeVideo);
-document.getElementById('nextVideo').addEventListener('click', () => {
-  if(currentVideos.length === 0) return;
-  currentIndex = (currentIndex + 1) % currentVideos.length;
-  openVideo(currentIndex);
-});
-document.getElementById('prevVideo').addEventListener('click', () => {
-  if(currentVideos.length === 0) return;
-  currentIndex = (currentIndex - 1 + currentVideos.length) % currentVideos.length;
-  openVideo(currentIndex);
-});
-document.getElementById('fullscreenBtn').addEventListener('click', () => {
-  const wrap = document.querySelector('#videoModal .modal-wrap');
-  if(!wrap) return;
-  if(!rotated){ wrap.classList.add("video-rotated"); rotated = true; }
-  else { wrap.classList.remove("video-rotated"); rotated = false; }
-  if(wrap.requestFullscreen) wrap.requestFullscreen();
-  else if(wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
-  else if(wrap.msRequestFullscreen) wrap.msRequestFullscreen();
-});
-
-// إغلاق الموديل عند الضغط على الخلفية أو زر Escape
-document.addEventListener('keydown', e => { if(e.key === 'Escape' && document.getElementById('videoModal').style.display === 'flex') { closeVideo(); } });
-document.getElementById('videoModal').addEventListener('click', e => { if(e.target === document.getElementById('videoModal')) { closeVideo(); } });
-
-// ✅ دالة Toast
+// ✅ Toast
 function showToast(msg) {
   const toast = document.getElementById("toast");
   toast.textContent = msg;
@@ -327,14 +218,12 @@ function showToast(msg) {
   setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
 }
 
-// ✅ زر الوضع الليلي
 const toggle = document.getElementById("darkToggle");
 toggle.addEventListener("click", () => {
   toggle.classList.toggle("active");
   document.body.classList.toggle("light-mode");
 });
 
-// ✅ زر المشاركة
 document.getElementById("shareBtn").addEventListener("click", async () => {
   if (navigator.share) {
     try {
@@ -349,7 +238,6 @@ document.getElementById("shareBtn").addEventListener("click", async () => {
   }
 });
 
-// ✅ زر الإشعارات → Toast
 document.getElementById("notifyBtn").addEventListener("click", () => { showToast("الإشعارات هتتفعل قريبًا 🔔✨"); });
 </script>
 </body>
