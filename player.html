@@ -5,98 +5,125 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>تشغيل الفيديو - منصة THE BEST</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+
   body {
     font-family: 'Cairo', sans-serif;
-    background: #0d0d0d;
+    background: radial-gradient(circle at top, #0a0a0a, #000);
     color: #fff;
     margin: 0;
-    padding: 0;
     text-align: center;
+    overflow-x: hidden;
   }
 
-  /* الشريط العلوي */
+  /* ======= الشريط العلوي ======= */
   .topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: #111;
-    padding: 12px 15px;
+    padding: 14px 18px;
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 1px solid #222;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
   }
-  .title { color: #ffd700; font-weight: bold; font-size: 18px; }
-  .back { font-size: 22px; cursor: pointer; color: #ffd700; }
+  .title {
+    color: #ffd700;
+    font-weight: 700;
+    font-size: 18px;
+    text-shadow: 0 0 8px #ffd700;
+  }
+  .back {
+    font-size: 22px;
+    cursor: pointer;
+    color: #ffd700;
+    transition: transform 0.3s;
+  }
+  .back:hover { transform: translateX(-5px); }
 
-  /* مشغل الفيديو */
+  /* ======= مشغل الفيديو ======= */
   .player {
     position: relative;
     width: 100%;
-    max-width: 1000px;
-    margin: auto;
+    max-width: 950px;
+    margin: 25px auto;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
     background: #000;
-    border-bottom: 2px solid #222;
   }
   iframe, video {
     width: 100%;
-    height: 60vh;
+    height: 65vh;
     border: none;
     display: block;
   }
 
-  /* قسم التشغيل الخارجي */
+  /* ======= قسم التشغيل الخارجي ======= */
   .external {
-    background: #121212;
-    padding: 25px 10px;
+    background: #111;
+    padding: 35px 10px 50px;
+    border-top: 2px solid #222;
+    box-shadow: 0 -5px 15px rgba(255, 215, 0, 0.05);
   }
   .external h2 {
     color: #ffd700;
     font-size: 22px;
-    margin-bottom: 15px;
-    text-shadow: 0 0 6px #ffd700;
+    margin-bottom: 25px;
+    text-shadow: 0 0 10px #ffd700;
+    position: relative;
   }
+  .external h2::after {
+    content: "";
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #ffd700, #ffb700);
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 2px;
+  }
+
   .apps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 15px;
-    justify-items: center;
-    padding: 0 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    justify-content: center;
   }
   .app-btn {
-    background: #1a1a1a;
+    background: #1b1b1b;
     border: 1px solid #333;
-    border-radius: 12px;
-    padding: 15px;
-    width: 120px;
+    border-radius: 14px;
+    padding: 15px 10px;
+    width: 130px;
     text-align: center;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.3s ease;
   }
   .app-btn:hover {
-    transform: translateY(-5px);
-    background: #222;
+    transform: translateY(-6px);
+    background: linear-gradient(180deg, #222, #111);
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
   }
   .app-btn img {
-    width: 45px;
-    height: 45px;
-    display: block;
-    margin: auto;
+    width: 50px;
+    height: 50px;
     margin-bottom: 8px;
   }
   .app-btn span {
     display: block;
-    color: #fff;
+    color: #ffd700;
+    font-weight: 600;
     font-size: 15px;
   }
 
-  /* Toast بسيط */
+  /* ======= Toast ======= */
   #toast {
     visibility: hidden;
     min-width: 260px;
-    background: #1e1e1e;
+    background: linear-gradient(90deg, #222, #1a1a1a);
     color: #ffd700;
     text-align: center;
     border-radius: 12px;
@@ -107,65 +134,59 @@
     bottom: 30px;
     transform: translateX(-50%);
     font-size: 1rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
     opacity: 0;
     transition: opacity 0.5s, bottom 0.5s;
   }
   #toast.show {
     visibility: visible;
     opacity: 1;
-    bottom: 50px;
+    bottom: 55px;
   }
 </style>
 </head>
 <body>
 
+  <!-- ======= الشريط العلوي ======= -->
   <div class="topbar">
     <div class="back" onclick="history.back()">⬅</div>
     <div class="title">تشغيل الفيديو 🎬</div>
     <div style="width:25px;"></div>
   </div>
 
+  <!-- ======= مشغل الفيديو ======= -->
   <div class="player">
     <iframe id="videoFrame" allowfullscreen allow="autoplay"></iframe>
   </div>
 
+  <!-- ======= قسم التشغيل الخارجي ======= -->
   <div class="external">
     <h2>تشغيل بواسطة...</h2>
     <div class="apps">
-      <div class="app-btn" onclick="openApp('vlc')">
-        <img src="https://cdn-icons-png.flaticon.com/512/5969/5969200.png"><span>VLC Player</span>
-      </div>
-      <div class="app-btn" onclick="openApp('mx')">
-        <img src="https://cdn-icons-png.flaticon.com/512/5969/5969215.png"><span>MX Player</span>
-      </div>
-      <div class="app-btn" onclick="openApp('playit')">
-        <img src="https://cdn-icons-png.flaticon.com/512/5969/5969220.png"><span>Play-it</span>
-      </div>
-      <div class="app-btn" onclick="openApp('km')">
-        <img src="https://cdn-icons-png.flaticon.com/512/5969/5969210.png"><span>KM Player</span>
-      </div>
-      <div class="app-btn" onclick="openApp('yt')">
-        <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"><span>YouTube</span>
-      </div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969200.png"><span>VLC Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969215.png"><span>MX Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969220.png"><span>PlayIt</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969210.png"><span>KM Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"><span>YouTube</span></div>
     </div>
   </div>
 
-  <div id="toast">تم النسخ ✅</div>
+  <div id="toast">🚧 سيتم إضافة هذه الميزة قريبًا 🔜</div>
 
 <script>
+  // ======= تشغيل الفيديو =======
   const params = new URLSearchParams(window.location.search);
   const url = params.get('url');
   const frame = document.getElementById("videoFrame");
 
   if (!url) {
-    frame.outerHTML = "<p style='color:#ffd700;margin:30px;'>لم يتم تحديد رابط الفيديو 😢</p>";
+    frame.outerHTML = "<p style='color:#ffd700;margin:30px;font-size:18px;'>لم يتم تحديد رابط الفيديو 😢</p>";
   } else {
     if (url.includes("youtube.com") || url.includes("youtu.be")) {
       const id = extractYouTubeID(url);
-      frame.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+      frame.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&showinfo=0`;
     } else {
-      frame.outerHTML = `<video controls autoplay src="${url}"></video>`;
+      frame.outerHTML = `<video controls autoplay src="${url}" style="border-radius:18px;"></video>`;
     }
   }
 
@@ -181,28 +202,20 @@
     }
   }
 
-  function openApp(app) {
-    if (!url) return showToast("لا يوجد فيديو!");
-    let appUrl = url;
-    if (app === "vlc") appUrl = `vlc://${url}`;
-    else if (app === "mx") appUrl = `intent:${url}#Intent;package=com.mxtech.videoplayer.ad;end`;
-    else if (app === "playit") appUrl = `playit://${url}`;
-    else if (app === "km") appUrl = `intent:${url}#Intent;package=com.kmplayer;end`;
-    else if (app === "yt") appUrl = url;
-
-    try {
-      window.location.href = appUrl;
-    } catch {
-      showToast("تعذر فتح التطبيق 🚫");
-    }
-  }
-
+  // ======= Toast =======
   function showToast(msg) {
     const toast = document.getElementById("toast");
     toast.textContent = msg;
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 2500);
   }
+
+  // ======= الضغط على أي مشغل خارجي =======
+  document.querySelectorAll(".app-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      showToast("🚧 سيتم إضافة هذه الميزة قريبًا 🔜");
+    });
+  });
 </script>
 
 </body>
