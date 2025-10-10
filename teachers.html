@@ -382,54 +382,6 @@ if (subject) {
 } else {
   title.textContent = "اختر مادة لعرض المدرسين 👇";
     }
-
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
-
-const db = getDatabase();
-
-const teachersList = document.getElementById("teachers-list");
-
-onValue(ref(db, "videos"), snapshot => {
-  const data = snapshot.val() || {};
-  const teachers = {};
-
-  // 🔍 جمع كل المدرسين اللي يدرّسوا نفس المادة
-  Object.values(data).forEach(v => {
-    if (v.subject === subject && v.teacher) {
-      teachers[v.teacher] = v.teacherImage || "https://img.icons8.com/ios-filled/100/ffd700/teacher.png";
-    }
-  });
-
-  teachersList.innerHTML = "";
-
-  if (Object.keys(teachers).length === 0) {
-    teachersList.innerHTML = '<li class="loading">لا يوجد مدرسين لهذه المادة 😢</li>';
-    return;
-  }
-
-  Object.entries(teachers).forEach(([name, imgSrc]) => {
-    const li = document.createElement("li");
-
-    const circle = document.createElement("div");
-    circle.className = "circle";
-    const img = document.createElement("img");
-    img.src = imgSrc;
-    circle.appendChild(img);
-
-    const span = document.createElement("span");
-    span.textContent = name;
-
-    li.appendChild(circle);
-    li.appendChild(span);
-
-    // عند الضغط على المدرس، تروح لصفحة الدروس الخاصة به
-    li.onclick = () => {
-      window.location.href = `videos.html?subject=${encodeURIComponent(subject)}&teacher=${encodeURIComponent(name)}`;
-    };
-
-    teachersList.appendChild(li);
-  });
-});
   </script>
 </body>
 </html>
