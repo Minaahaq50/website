@@ -361,7 +361,7 @@ function showToast(message, type = "info") {
   setTimeout(() => toast.remove(), 3000);
 }
 
-// ✅ متغير لتحديد هل التحقق نجح
+// ✅ متغير لتتبع حالة التحقق
 window.authPassed = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -384,6 +384,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const exists = Object.values(data || {}).some((v) => v.deviceId === uid);
 
     if (!exists) {
+      // ❌ المستخدم مش موجود
       localStorage.removeItem("approved");
       localStorage.removeItem("localUid");
       showToast("⚠️ تم حذف حسابك -- أعد التسجيل", "error");
@@ -392,6 +393,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       // ✅ تحقق ناجح
       window.authPassed = true;
       showToast("✅ تم التحقق بنجاح -- أهلاً بك!", "success");
+
+      // 💥 أهم جزء — إطلاق الحدث لباقي الصفحات
+      document.dispatchEvent(new Event("authReady"));
+
+      // 🕒 تأخير بسيط لتأكيد استقرار الصفحة
+      setTimeout(() => console.log("🔥 authReady event sent successfully."), 100);
     }
   } catch (err) {
     console.error(err);
