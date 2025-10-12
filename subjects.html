@@ -507,6 +507,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
   import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
 
+    // ✅ إذا كان متحقق بالفعل من قبل
+if (localStorage.getItem("verifiedOnce") === "true") {
+  window.authPassed = true;
+  document.dispatchEvent(new Event("authReady"));
+}
+
   // ✅ كل الكود دا جوّا الحدث دا فقط
   document.addEventListener("authReady", () => {
     console.log("✅ تم التحقق -- جاري تحميل البيانات من Firebase...");
