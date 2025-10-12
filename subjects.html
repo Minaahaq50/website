@@ -407,12 +407,93 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       // ✅ تحقق ناجح — نخزن وقت التحقق
       window.authPassed = true;
-      localStorage.setItem("lastVerified", now.toString());
+<script>
+// ✅ Toast احترافية
+function showToast(message, type = "info") {
+  const existingToast = document.querySelector(".custom-toast");
+  if (existingToast) existingToast.remove();
+
+  const toast = document.createElement("div");
+  toast.className = `custom-toast ${type}`;
+  toast.innerHTML = `<span>${message}</span>`;
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .custom-toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 14px 22px;
+      border-radius: 14px;
+      font-family: "Cairo", sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      animation: slideIn 0.5s ease, fadeOut 0.5s ease 2.5s forwards;
+      z-index: 9999;
+    }
+    .custom-toast.info { background: linear-gradient(135deg,#3498db,#2980b9); }
+    .custom-toast.success { background: linear-gradient(135deg,#2ecc71,#27ae60); }
+    .custom-toast.error { background: linear-gradient(135deg,#e74c3c,#c0392b); }
+    @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateX(120%); } }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ✅ متغير لتتبع حالة التحقق
+window.authPassed = false;
+
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const isApproved = localStorage.getItem("approved");
+    const uid = localStorage.getItem("localUid");
+    const verifiedOnce = localStorage.getItem("verifiedOnce");
+
+    // 🔒 لو المستخدم مش مسجل أساسًا
+    if (isApproved !== "true" || !uid) {
+      showToast("🚫 غير مصرح بالدخول -- سجل أولاً", "error");
+      setTimeout(() => (window.location.href = "index.html"), 1500);
+      return;
+    }
+
+    // ✅ لو تم التحقق سابقًا بالفعل — نتخطى الفحص من السيرفر
+    if (verifiedOnce === "true") {
+      window.authPassed = true;
+      document.dispatchEvent(new Event("authReady"));
+      console.log("✅ تم التحقق مسبقًا، تخطى الفحص.");
+      return;
+    }
+
+    // 🌍 أول مرة فقط: تحقق من قاعدة البيانات
+    const dbUrl = "https://alamer-526ff-default-rtdb.firebaseio.com/approvedStudents.json";
+    const res = await fetch(dbUrl);
+    const data = await res.json();
+
+    const exists = Object.values(data || {}).some((v) => v.deviceId === uid);
+
+    if (!exists) {
+      // ❌ الحساب مش موجود
+      localStorage.removeItem("approved");
+      localStorage.removeItem("localUid");
+      localStorage.removeItem("verifiedOnce");
+      showToast("⚠️ تم حذف حسابك -- أعد التسجيل", "error");
+      setTimeout(() => (window.location.href = "index.html"), 1500);
+    } else {
+      // ✅ تحقق ناجح — نخزن إن المستخدم اتأكد مرة واحدة فقط
+      window.authPassed = true;
+      localStorage.setItem("verifiedOnce", "true");
       showToast("✅ تم التحقق بنجاح -- أهلاً بك!", "success");
 
       // 🔥 إطلاق الحدث لباقي الأكواد (Firebase)
       document.dispatchEvent(new Event("authReady"));
-      console.log("🔥 authReady event sent successfully.");
+      setTimeout(() => console.log("🔥 authReady event sent successfully."), 100);
     }
   } catch (err) {
     console.error(err);
@@ -420,8 +501,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => (window.location.href = "index.html"), 2000);
   }
 });
-</script>
-
+      </script>
+  
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
   import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
