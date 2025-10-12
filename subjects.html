@@ -456,6 +456,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const uid = localStorage.getItem("localUid");
     const verifiedOnce = localStorage.getItem("verifiedOnce");
 
+    // ✅ فحص القيم المخزنة
+    showToast(`📦 approved=${isApproved}, verifiedOnce=${verifiedOnce}`, "info");
+
     // 🔒 لو المستخدم مش مسجل أساسًا
     if (isApproved !== "true" || !uid) {
       showToast("🚫 غير مصرح بالدخول -- سجل أولاً", "error");
@@ -466,8 +469,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ✅ لو تم التحقق سابقًا بالفعل — نتخطى الفحص من السيرفر
     if (verifiedOnce === "true") {
       window.authPassed = true;
+      showToast("🟢 تم التحقق مسبقًا - تشغيل البيانات", "success");
       document.dispatchEvent(new Event("authReady"));
-      console.log("✅ تم التحقق مسبقًا، تخطى الفحص.");
       return;
     }
 
@@ -490,10 +493,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.authPassed = true;
       localStorage.setItem("verifiedOnce", "true");
       showToast("✅ تم التحقق بنجاح -- أهلاً بك!", "success");
-
-      // 🔥 إطلاق الحدث لباقي الأكواد (Firebase)
       document.dispatchEvent(new Event("authReady"));
-      setTimeout(() => console.log("🔥 authReady event sent successfully."), 100);
     }
   } catch (err) {
     console.error(err);
@@ -501,7 +501,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => (window.location.href = "index.html"), 2000);
   }
 });
-      </script>
+
+// ✅ لو الصفحة اتفتحت بعد تحقق سابق، نعيد تفعيل الحدث تلقائيًا
+window.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("verifiedOnce") === "true" && !window.authPassed) {
+    window.authPassed = true;
+    showToast("🚀 تم التحقق تلقائيًا - جاهز للتحميل", "success");
+    document.dispatchEvent(new Event("authReady"));
+  }
+});
+</script>
   
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
