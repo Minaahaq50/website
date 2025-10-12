@@ -402,9 +402,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 </script>
 
   <script type="module">
-  if (!window.authPassed) return;
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
+    
+    document.addEventListener("authReady", () => {
+  // هنا كود Firebase كله
+});
 
     const firebaseConfig = {
       apiKey: "AIzaSyCdhj73cKJc2J2_tDHw2-89EemZx-EGMJQ",
