@@ -543,6 +543,8 @@
           checkIfApproved();
           checkExistingRequest();
           listenForDeletion();
+          listenForApproval(); // ✅ أضف هذا السطر هنا
+          
         } else {
           throw new Error("لم يتم الحصول على UID.");
         }
@@ -554,6 +556,36 @@
         console.error("Auth Error:", err);
       });
   }
+
+  // ✅ الاستماع لحالة القبول التلقائي للطالب
+function listenForApproval() {
+  if (!currentUid) return;
+  
+  db.ref("approvedStudents").orderByChild("deviceId").equalTo(currentUid).on("value", snap => {
+    if (snap.exists()) {
+      const key = Object.keys(snap.val())[0];
+      const data = snap.val()[key];
+
+      // التحقق من صلاحية القبول
+      if (data.expiry && Date.now() > data.expiry) {
+        showToast("انتهت صلاحية الكود، يرجى إعادة التسجيل", "error");
+        localStorage.removeItem("approved");
+        return;
+      }
+
+      // حفظ البيانات في localStorage
+      localStorage.setItem("approved", "true");
+      localStorage.setItem("studentName", data.name || "");
+      localStorage.setItem("studentPhone", data.phone || "");
+
+      // إشعار وتحويل تلقائي
+      showToast("✅ تم قبولك! جارٍ فتح الصفحة...", "success");
+      setTimeout(() => {
+        window.location.href = "subjects.html";
+      }, 1200);
+    }
+  });
+}
 
   function checkIfApproved() {
     if (!currentUid) return;
