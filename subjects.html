@@ -368,15 +368,29 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const isApproved = localStorage.getItem("approved");
     const uid = localStorage.getItem("localUid");
+    const lastVerified = localStorage.getItem("lastVerified"); // آخر تحقق
 
-    // 🔒 لو المستخدم غير معتمد
+    // 🔒 لو المستخدم مش مسجل أساسًا
     if (isApproved !== "true" || !uid) {
       showToast("🚫 غير مصرح بالدخول -- سجل أولاً", "error");
       setTimeout(() => (window.location.href = "index.html"), 1500);
       return;
     }
 
-    // 🔍 التحقق من قاعدة البيانات
+    // ⏰ نحسب الفرق بين الوقت الحالي وآخر تحقق
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+    const shouldRecheck = !lastVerified || now - Number(lastVerified) > oneDay;
+
+    // ✅ لو لسه متحقق النهارده → تخطي التحقق
+    if (!shouldRecheck) {
+      window.authPassed = true;
+      document.dispatchEvent(new Event("authReady"));
+      console.log("✅ تم التحقق مسبقًا (أقل من 24 ساعة).");
+      return;
+    }
+
+    // 🌍 تحقق فعلي من قاعدة البيانات
     const dbUrl = "https://alamer-526ff-default-rtdb.firebaseio.com/approvedStudents.json";
     const res = await fetch(dbUrl);
     const data = await res.json();
@@ -384,21 +398,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     const exists = Object.values(data || {}).some((v) => v.deviceId === uid);
 
     if (!exists) {
-      // ❌ المستخدم مش موجود
+      // ❌ الحساب مش موجود
       localStorage.removeItem("approved");
       localStorage.removeItem("localUid");
+      localStorage.removeItem("lastVerified");
       showToast("⚠️ تم حذف حسابك -- أعد التسجيل", "error");
       setTimeout(() => (window.location.href = "index.html"), 1500);
     } else {
-      // ✅ تحقق ناجح
+      // ✅ تحقق ناجح — نخزن وقت التحقق
       window.authPassed = true;
+      localStorage.setItem("lastVerified", now.toString());
       showToast("✅ تم التحقق بنجاح -- أهلاً بك!", "success");
 
-      // 💥 أهم جزء — إطلاق الحدث لباقي الصفحات
+      // 🔥 إطلاق الحدث لباقي الأكواد (Firebase)
       document.dispatchEvent(new Event("authReady"));
-
-      // 🕒 تأخير بسيط لتأكيد استقرار الصفحة
-      setTimeout(() => console.log("🔥 authReady event sent successfully."), 100);
+      console.log("🔥 authReady event sent successfully.");
     }
   } catch (err) {
     console.error(err);
