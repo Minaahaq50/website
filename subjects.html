@@ -321,7 +321,87 @@
     <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="بروفايل">
   </a>
 
-  <script src="authCheck.js"></script>
+<script>
+// ✅ Toast احترافية مع أنيميشن
+function showToast(message, type = "info") {
+  const existingToast = document.querySelector(".custom-toast");
+  if (existingToast) existingToast.remove();
+
+  const toast = document.createElement("div");
+  toast.className = `custom-toast ${type}`;
+  toast.innerHTML = `
+    <span>${message}</span>
+  `;
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .custom-toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 14px 22px;
+      border-radius: 14px;
+      font-family: "Cairo", sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      animation: slideIn 0.5s ease, fadeOut 0.5s ease 2.5s forwards;
+      z-index: 9999;
+    }
+    .custom-toast.info { background: linear-gradient(135deg,#3498db,#2980b9); }
+    .custom-toast.success { background: linear-gradient(135deg,#2ecc71,#27ae60); }
+    .custom-toast.error { background: linear-gradient(135deg,#e74c3c,#c0392b); }
+    @keyframes slideIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(120%); }
+    }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ✅ التحقق من هوية المستخدم
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const isApproved = localStorage.getItem("approved");
+    const uid = localStorage.getItem("localUid");
+
+    // 🔸 لو المستخدم مش معتمد أو مفيش UID
+    if (isApproved !== "true" || !uid) {
+      showToast("🚫 غير مسموح بالدخول — يرجى التسجيل أولاً", "error");
+      setTimeout(() => (window.location.href = "index.html"), 1500);
+      return;
+    }
+
+    // 🔸 التحقق من قاعدة البيانات
+    const dbUrl = "https://alamer-526ff-default-rtdb.firebaseio.com/approvedStudents.json";
+    const res = await fetch(dbUrl);
+    const data = await res.json();
+
+    const exists = Object.values(data || {}).some((v) => v.deviceId === uid);
+
+    if (!exists) {
+      localStorage.removeItem("approved");
+      localStorage.removeItem("localUid");
+      showToast("⚠️ تم إلغاء اعتمادك — يرجى التسجيل من جديد", "error");
+      setTimeout(() => (window.location.href = "index.html"), 1500);
+    } else {
+      showToast("✅ تم التحقق بنجاح — مرحبًا بك!", "success");
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("⚠️ فشل الاتصال بالخادم، حاول لاحقًا", "error");
+  }
+});
+    </script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
