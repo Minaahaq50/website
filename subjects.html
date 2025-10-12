@@ -402,12 +402,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 </script>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
-    
-    document.addEventListener("authReady", () => {
-  // هنا كود Firebase كله
-});
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
+
+  // ✅ كل الكود دا جوّا الحدث دا فقط
+  document.addEventListener("authReady", () => {
+    console.log("✅ تم التحقق -- جاري تحميل البيانات من Firebase...");
 
     const firebaseConfig = {
       apiKey: "AIzaSyCdhj73cKJc2J2_tDHw2-89EemZx-EGMJQ",
@@ -423,7 +423,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const db = getDatabase(app);
 
     const subjectsList = document.getElementById('subjects-list');
-
     const subjectImages = {
       "أحياء": "https://www2.0zz0.com/2025/09/30/15/923573836.png",
       "فيزياء": "https://www2.0zz0.com/2025/09/30/15/161746092.jpeg",
@@ -435,6 +434,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       "ادبي": "https://www2.0zz0.com/2025/10/01/19/580067879.jpeg", 
     };
 
+    // ✅ تحميل المواد
     onValue(ref(db, 'videos'), snapshot => {
       const data = snapshot.val() || {};
       const subjects = new Set();
@@ -446,7 +446,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       subjectsList.innerHTML = '';
 
       if (subjects.size === 0) {
-        subjectsList.innerHTML = '<li class="loading">لا توجد مواد.</li>';
+        subjectsList.innerHTML = '<li class="loading">⚠️ لا توجد مواد.</li>';
         return;
       }
 
@@ -477,7 +477,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error(error);
     });
 
-    // ✅ دالة Toast
+    // ✅ Toast
     function showToast(msg) {
       const toast = document.getElementById("toast");
       toast.textContent = msg;
@@ -513,6 +513,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("notifyBtn").addEventListener("click", () => {
       showToast("الإشعارات هتتفعل قريبًا 🔔✨");
     });
-  </script>
+  }); // ← ختام الحدث هنا فقط
+</script>
 </body>
 </html>
