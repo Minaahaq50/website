@@ -322,11 +322,8 @@
   </a>
 
 <script>
-// ✅ Toast احترافية
+// ✅ Toast احترافية — نسخة واحدة فقط
 function showToast(message, type = "info") {
-  const existingToast = document.querySelector(".custom-toast");
-  if (existingToast) existingToast.remove();
-
   const toast = document.createElement("div");
   toast.className = `custom-toast ${type}`;
   toast.innerHTML = `<span>${message}</span>`;
@@ -364,49 +361,40 @@ function showToast(message, type = "info") {
 // ✅ متغير لتتبع حالة التحقق
 window.authPassed = false;
 
+// ✅ تحقق المستخدم عند تحميل الصفحة
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const isApproved = localStorage.getItem("approved");
     const uid = localStorage.getItem("localUid");
     const verifiedOnce = localStorage.getItem("verifiedOnce");
 
-    // ✅ فحص القيم المخزنة
-    showToast(`📦 approved=${isApproved}, verifiedOnce=${verifiedOnce}`, "info");
-
-    // 🔒 لو المستخدم مش مسجل أساسًا
     if (isApproved !== "true" || !uid) {
       showToast("🚫 غير مصرح بالدخول -- سجل أولاً", "error");
       setTimeout(() => (window.location.href = "index.html"), 1500);
       return;
     }
 
-    // ✅ لو تم التحقق سابقًا بالفعل — نتخطى الفحص من السيرفر
     if (verifiedOnce === "true") {
       window.authPassed = true;
-      showToast("🟢 تم التحقق مسبقًا - تشغيل البيانات", "success");
+      showToast("🟢 تم التحقق مسبقًا", "success");
       document.dispatchEvent(new Event("authReady"));
       return;
     }
 
-    // 🌍 أول مرة فقط: تحقق من قاعدة البيانات
+    // أول مرة فقط
     const dbUrl = "https://alamer-526ff-default-rtdb.firebaseio.com/approvedStudents.json";
     const res = await fetch(dbUrl);
     const data = await res.json();
-
-    const exists = Object.values(data || {}).some((v) => v.deviceId === uid);
+    const exists = Object.values(data || {}).some(v => v.deviceId === uid);
 
     if (!exists) {
-      // ❌ الحساب مش موجود
-      localStorage.removeItem("approved");
-      localStorage.removeItem("localUid");
-      localStorage.removeItem("verifiedOnce");
+      localStorage.clear();
       showToast("⚠️ تم حذف حسابك -- أعد التسجيل", "error");
       setTimeout(() => (window.location.href = "index.html"), 1500);
     } else {
-      // ✅ تحقق ناجح — نخزن إن المستخدم اتأكد مرة واحدة فقط
       window.authPassed = true;
       localStorage.setItem("verifiedOnce", "true");
-      showToast("✅ تم التحقق بنجاح -- أهلاً بك!", "success");
+      showToast("✅ تم التحقق بنجاح!", "success");
       document.dispatchEvent(new Event("authReady"));
     }
   } catch (err) {
@@ -415,98 +403,81 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => (window.location.href = "index.html"), 2000);
   }
 });
-
-// ✅ لو الصفحة اتفتحت بعد تحقق سابق، نعيد تفعيل الحدث تلقائيًا
-window.addEventListener("DOMContentLoaded", () => {
-  if (localStorage.getItem("verifiedOnce") === "true" && !window.authPassed) {
-    window.authPassed = true;
-    showToast("🚀 تم التحقق تلقائيًا - جاهز للتحميل", "success");
-    document.dispatchEvent(new Event("authReady"));
-  }
-});
 </script>
-  
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
 
-    // ✅ إذا كان متحقق بالفعل من قبل
-if (localStorage.getItem("verifiedOnce") === "true") {
-  window.authPassed = true;
-  document.dispatchEvent(new Event("authReady"));
-}
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
 
-  // ✅ كل الكود دا جوّا الحدث دا فقط
-  document.addEventListener("authReady", () => {
-    console.log("✅ تم التحقق -- جاري تحميل البيانات من Firebase...");
+// ✅ الكود دا هيشتغل بس بعد التحقق
+document.addEventListener("authReady", () => {
+  const firebaseConfig = {
+    apiKey: "AIzaSyCdhj73cKJc2J2_tDHw2-89EemZx-EGMJQ",
+    authDomain: "alamer-526ff.firebaseapp.com",
+    databaseURL: "https://alamer-526ff-default-rtdb.firebaseio.com",
+    projectId: "alamer-526ff",
+    storageBucket: "alamer-526ff.firebasestorage.app",
+    messagingSenderId: "523879269039",
+    appId: "1:523879269039:web:634861aa34641bfebf8a5a",
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCdhj73cKJc2J2_tDHw2-89EemZx-EGMJQ",
-      authDomain: "alamer-526ff.firebaseapp.com",
-      databaseURL: "https://alamer-526ff-default-rtdb.firebaseio.com",
-      projectId: "alamer-526ff",
-      storageBucket: "alamer-526ff.firebasestorage.app",
-      messagingSenderId: "523879269039",
-      appId: "1:523879269039:web:634861aa34641bfebf8a5a",
-    };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const subjectsList = document.getElementById('subjects-list');
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const subjectImages = {
+    "أحياء": "https://www2.0zz0.com/2025/09/30/15/923573836.png",
+    "فيزياء": "https://www2.0zz0.com/2025/09/30/15/161746092.jpeg",
+    "كيمياء": "https://www2.0zz0.com/2025/09/30/15/432614713.png",
+    "عربي": "https://www2.0zz0.com/2025/09/30/15/663687320.png",
+    "إنجليزي": "https://www2.0zz0.com/2025/09/30/15/572118063.jpeg",
+    "جيولوجيا": "https://www2.0zz0.com/2025/10/01/19/835961815.jpeg",
+    "رياضه": "https://www2.0zz0.com/2025/10/05/19/620468277.jpeg",
+    "ادبي": "https://www2.0zz0.com/2025/10/01/19/580067879.jpeg",
+  };
 
-    const subjectsList = document.getElementById('subjects-list');
-    const subjectImages = {
-      "أحياء": "https://www2.0zz0.com/2025/09/30/15/923573836.png",
-      "فيزياء": "https://www2.0zz0.com/2025/09/30/15/161746092.jpeg",
-      "كيمياء": "https://www2.0zz0.com/2025/09/30/15/432614713.png",
-      "عربي": "https://www2.0zz0.com/2025/09/30/15/663687320.png",
-      "إنجليزي": "https://www2.0zz0.com/2025/09/30/15/572118063.jpeg",
-      "جيولوجيا": "https://www2.0zz0.com/2025/10/01/19/835961815.jpeg",
-      "رياضه": "https://www2.0zz0.com/2025/10/05/19/620468277.jpeg", 
-      "ادبي": "https://www2.0zz0.com/2025/10/01/19/580067879.jpeg", 
-    };
+  onValue(ref(db, 'videos'), snapshot => {
+    const data = snapshot.val() || {};
+    const subjects = new Set();
 
-    // ✅ تحميل المواد
-    onValue(ref(db, 'videos'), snapshot => {
-      const data = snapshot.val() || {};
-      const subjects = new Set();
+    Object.values(data).forEach(v => { if (v.subject) subjects.add(v.subject); });
 
-      Object.values(data).forEach(v => {
-        if (v.subject) subjects.add(v.subject);
-      });
+    subjectsList.innerHTML = '';
 
-      subjectsList.innerHTML = '';
+    if (subjects.size === 0) {
+      subjectsList.innerHTML = '<li class="loading">⚠️ لا توجد مواد.</li>';
+      return;
+    }
 
-      if (subjects.size === 0) {
-        subjectsList.innerHTML = '<li class="loading">⚠️ لا توجد مواد.</li>';
-        return;
-      }
+    [...subjects].sort().forEach(subject => {
+      const li = document.createElement('li');
+      const circle = document.createElement('div');
+      circle.className = 'circle';
 
-      [...subjects].sort().forEach(subject => {
-        const li = document.createElement('li');
-        const circle = document.createElement('div');
-        circle.className = 'circle';
+      const img = document.createElement('img');
+      img.src = subjectImages[subject] || 'https://img.icons8.com/ios-filled/100/ffd700/book.png';
+      img.alt = subject;
+      circle.appendChild(img);
 
-        const img = document.createElement('img');
-        img.src = subjectImages[subject] || 'https://img.icons8.com/ios-filled/100/ffd700/book.png';
-        img.alt = subject;
-        circle.appendChild(img);
+      const span = document.createElement('span');
+      span.textContent = subject;
 
-        const span = document.createElement('span');
-        span.textContent = subject;
+      li.appendChild(circle);
+      li.appendChild(span);
 
-        li.appendChild(circle);
-        li.appendChild(span);
+      li.onclick = () => {
+        window.location.href = `teachers.html?subject=${encodeURIComponent(subject)}`;
+      };
 
-        li.onclick = () => {
-          window.location.href = `teachers.html?subject=${encodeURIComponent(subject)}`;
-        };
-
-        subjectsList.appendChild(li);
-      });
-    }, error => {
-      subjectsList.innerHTML = '<li class="loading">⚠️ خطأ في تحميل البيانات</li>';
-      console.error(error);
+      subjectsList.appendChild(li);
     });
+    showToast("✅ تم تحميل المواد بنجاح", "success");
+  }, error => {
+    console.error(error);
+    subjectsList.innerHTML = '<li class="loading">⚠️ خطأ في تحميل البيانات</li>';
+    showToast("❌ فشل الاتصال بـ Firebase", "error");
+  });
+
 
     // ✅ Toast
     function showToast(msg) {
