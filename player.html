@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>تشغيل الفيديو - منصة THE BEST</title>
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
 
@@ -39,25 +40,19 @@
     cursor: pointer;
     color: #ffd700;
     transition: transform 0.3s;
+    user-select: none;
   }
   .back:hover { transform: translateX(-5px); }
 
   /* ======= مشغل الفيديو ======= */
-  .player {
-    position: relative;
-    width: 100%;
+  #player {
     max-width: 950px;
-    margin: 25px auto;
+    width: 100%;
+    height: 60vh;
     border-radius: 18px;
-    overflow: hidden;
+    margin: 25px auto;
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
     background: #000;
-  }
-
-  #player {
-    width: 100%;
-    height: 65vh;
-    border-radius: 18px;
   }
 
   /* ======= قسم التشغيل الخارجي ======= */
@@ -101,6 +96,7 @@
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
+    user-select: none;
   }
   .app-btn:hover {
     transform: translateY(-6px);
@@ -119,7 +115,7 @@
     font-size: 15px;
   }
 
-  /* ======= Toast ======= */
+  /* ======= رسالة التنبيه Toast ======= */
   #toast {
     visibility: hidden;
     min-width: 260px;
@@ -143,11 +139,16 @@
     opacity: 1;
     bottom: 55px;
   }
+
+  /* رسالة الخطأ */
+  .error-msg {
+    margin: 40px auto;
+    color: #ff4d4d;
+    font-size: 20px;
+    font-weight: 700;
+    text-shadow: 0 0 8px #ff0000;
+  }
 </style>
-
-<!-- Plyr CSS -->
-<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-
 </head>
 <body>
 
@@ -159,93 +160,83 @@
   </div>
 
   <!-- ======= مشغل الفيديو ======= -->
-  <div class="player">
-    <video id="player" playsinline controls muted></video>
-  </div>
+  <video id="player" playsinline controls></video>
 
   <!-- ======= قسم التشغيل الخارجي ======= -->
   <div class="external">
     <h2>تشغيل بواسطة...</h2>
     <div class="apps">
-      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969200.png"><span>VLC Player</span></div>
-      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969215.png"><span>MX Player</span></div>
-      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969220.png"><span>PlayIt</span></div>
-      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969210.png"><span>KM Player</span></div>
-      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"><span>YouTube</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969200.png" alt="VLC Player"><span>VLC Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969215.png" alt="MX Player"><span>MX Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969220.png" alt="PlayIt"><span>PlayIt</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969210.png" alt="KM Player"><span>KM Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube"><span>YouTube</span></div>
     </div>
   </div>
 
+  <!-- رسالة التنبيه -->
   <div id="toast">🚧 سيتم إضافة هذه الميزة قريبًا 🔜</div>
 
-  <!-- Plyr JS -->
+  <!-- ======= سكريبت التشغيل ======= -->
   <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
-
   <script>
-    // استخراج ID يوتيوب من روابط مختلفة
-    function extractYouTubeID(link) {
-      try {
-        const u = new URL(link);
-        if (u.hostname.includes("youtu.be")) return u.pathname.slice(1);
-        if (u.searchParams.get("v")) return u.searchParams.get("v");
-        const match = u.pathname.match(/\/embed\/([^/?#]+)/);
-        if (match) return match[1];
-        return "";
-      } catch {
-        return "";
-      }
-    }
-
-    // قراءة الرابط من الـ URL
     const params = new URLSearchParams(window.location.search);
     const url = params.get('url');
-    const playerElement = document.getElementById('player');
-
-    // إنشاء مشغل Plyr مع خيارات للموبايل
     const player = new Plyr('#player', {
       autoplay: true,
       muted: true,
       playsinline: true,
       youtube: {
-        noCookie: true,
-        rel: 0,
         modestbranding: 1,
-        autoplay: 1
+        rel: 0,
+        autoplay: 1,
       }
     });
 
-    if (!url) {
-      playerElement.outerHTML = "<p style='color:#ffd700;margin:30px;font-size:18px;'>لم يتم تحديد رابط الفيديو 😢</p>";
-    } else {
-      if (url.includes("youtube.com") || url.includes("youtu.be")) {
-        const id = extractYouTubeID(url);
-        if (id) {
-          player.source = {
-            type: 'video',
-            sources: [
-              {
-                src: id,
-                provider: 'youtube'
-              }
-            ]
-          };
-        } else {
-          playerElement.outerHTML = "<p style='color:#ffd700;margin:30px;font-size:18px;'>رابط يوتيوب غير صالح 😢</p>";
+    function getYouTubeID(link) {
+      try {
+        const u = new URL(link);
+        if (u.hostname === 'youtu.be') return u.pathname.slice(1);
+        if (u.hostname.includes('youtube.com')) {
+          return u.searchParams.get('v') || (u.pathname.match(/\/embed\/([^/?#]+)/) || [])[1];
         }
-      } else {
-        // فيديو عادي (mp4 أو غيره)
+        return null;
+      } catch {
+        return null;
+      }
+    }
+
+    if (!url) {
+      // لو ما فيه رابط
+      document.getElementById('player').style.display = 'none';
+      const errorEl = document.createElement('p');
+      errorEl.className = 'error-msg';
+      errorEl.textContent = 'لم يتم تحديد رابط الفيديو 😢';
+      document.body.insertBefore(errorEl, document.querySelector('.external'));
+    } else {
+      const ytID = getYouTubeID(url);
+      if (ytID) {
+        // فيديو يوتيوب
         player.source = {
           type: 'video',
-          sources: [
-            {
-              src: url,
-              type: 'video/mp4' // تأكد نوع الفيديو حسب الحاجة
-            }
-          ]
+          sources: [{
+            src: ytID,
+            provider: 'youtube',
+          }]
+        };
+      } else {
+        // فيديو عادي (mp4 مثلاً)
+        player.source = {
+          type: 'video',
+          sources: [{
+            src: url,
+            type: 'video/mp4',
+          }]
         };
       }
     }
 
-    // عرض رسالة toast عند الضغط على مشغل خارجي
+    // رسالة toast للتشغيل الخارجي
     function showToast(msg) {
       const toast = document.getElementById("toast");
       toast.textContent = msg;
