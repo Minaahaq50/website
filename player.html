@@ -183,13 +183,11 @@
     const params = new URLSearchParams(window.location.search);
     const url = params.get('url');
     const player = new Plyr('#player', {
-      autoplay: true,
       muted: true,
       playsinline: true,
       youtube: {
         modestbranding: 1,
         rel: 0,
-        autoplay: 1,
       }
     });
 
@@ -207,7 +205,6 @@
     }
 
     if (!url) {
-      // لو ما فيه رابط
       document.getElementById('player').style.display = 'none';
       const errorEl = document.createElement('p');
       errorEl.className = 'error-msg';
@@ -216,7 +213,6 @@
     } else {
       const ytID = getYouTubeID(url);
       if (ytID) {
-        // فيديو يوتيوب
         player.source = {
           type: 'video',
           sources: [{
@@ -225,7 +221,6 @@
           }]
         };
       } else {
-        // فيديو عادي (mp4 مثلاً)
         player.source = {
           type: 'video',
           sources: [{
