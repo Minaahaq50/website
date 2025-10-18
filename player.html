@@ -17,7 +17,6 @@
     overflow-x: hidden;
   }
 
-  /* ======= الشريط العلوي ======= */
   .topbar {
     display: flex;
     align-items: center;
@@ -44,7 +43,6 @@
   }
   .back:hover { transform: translateX(-5px); }
 
-  /* ======= مشغل الفيديو ======= */
   #player {
     max-width: 950px;
     width: 100%;
@@ -55,7 +53,6 @@
     background: #000;
   }
 
-  /* ======= قسم التشغيل الخارجي ======= */
   .external {
     background: #111;
     padding: 35px 10px 50px;
@@ -115,7 +112,6 @@
     font-size: 15px;
   }
 
-  /* ======= رسالة التنبيه Toast ======= */
   #toast {
     visibility: hidden;
     min-width: 260px;
@@ -140,7 +136,6 @@
     bottom: 55px;
   }
 
-  /* رسالة الخطأ */
   .error-msg {
     margin: 40px auto;
     color: #ff4d4d;
@@ -152,17 +147,14 @@
 </head>
 <body>
 
-  <!-- ======= الشريط العلوي ======= -->
   <div class="topbar">
     <div class="back" onclick="history.back()">⬅</div>
     <div class="title">تشغيل الفيديو 🎬</div>
     <div style="width:25px;"></div>
   </div>
 
-  <!-- ======= مشغل الفيديو ======= -->
   <video id="player" playsinline controls></video>
 
-  <!-- ======= قسم التشغيل الخارجي ======= -->
   <div class="external">
     <h2>تشغيل بواسطة...</h2>
     <div class="apps">
@@ -174,22 +166,13 @@
     </div>
   </div>
 
-  <!-- رسالة التنبيه -->
   <div id="toast">🚧 سيتم إضافة هذه الميزة قريبًا 🔜</div>
 
-  <!-- ======= سكريبت التشغيل ======= -->
   <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     const url = params.get('url');
-    const player = new Plyr('#player', {
-      muted: true,
-      playsinline: true,
-      youtube: {
-        modestbranding: 1,
-        rel: 0,
-      }
-    });
+    const playerContainer = document.getElementById('player');
 
     function getYouTubeID(link) {
       try {
@@ -205,22 +188,40 @@
     }
 
     if (!url) {
-      document.getElementById('player').style.display = 'none';
+      playerContainer.style.display = 'none';
       const errorEl = document.createElement('p');
       errorEl.className = 'error-msg';
       errorEl.textContent = 'لم يتم تحديد رابط الفيديو 😢';
       document.body.insertBefore(errorEl, document.querySelector('.external'));
     } else {
       const ytID = getYouTubeID(url);
+
       if (ytID) {
-        player.source = {
-          type: 'video',
-          sources: [{
-            src: ytID,
-            provider: 'youtube',
-          }]
-        };
+        // نستخدم iframe مخصص لـ Plyr (يدعم الموبايل)
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube.com/embed/${ytID}?playsinline=1&modestbranding=1&rel=0`;
+        iframe.allow = "autoplay; encrypted-media; picture-in-picture;";
+        iframe.allowFullscreen = true;
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = "none";
+        iframe.style.borderRadius = "18px";
+        playerContainer.appendChild(iframe);
+
+        new Plyr(iframe, {
+          youtube: { noCookie: true },
+          controls: [
+            'play-large', 'play', 'progress', 'current-time',
+            'mute', 'volume', 'settings', 'fullscreen'
+          ]
+        });
       } else {
+        const player = new Plyr('#player', {
+          controls: [
+            'play-large', 'play', 'progress', 'current-time',
+            'mute', 'volume', 'settings', 'fullscreen'
+          ]
+        });
         player.source = {
           type: 'video',
           sources: [{
@@ -231,7 +232,6 @@
       }
     }
 
-    // رسالة toast للتشغيل الخارجي
     function showToast(msg) {
       const toast = document.getElementById("toast");
       toast.textContent = msg;
