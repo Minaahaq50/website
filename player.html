@@ -1,179 +1,169 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>تشغيل الفيديو - منصة THE BEST</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>تشغيل الفيديو - منصة THE BEST</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: radial-gradient(circle at top, #0a0a0a, #000);
+    color: #fff;
+    margin: 0;
+    text-align: center;
+    overflow-x: hidden;
+  }
 
-  <!-- Plyr CSS -->
-  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+  /* ======= الشريط العلوي ======= */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #111;
+    padding: 14px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+  }
+  .title {
+    color: #ffd700;
+    font-weight: 700;
+    font-size: 18px;
+    text-shadow: 0 0 8px #ffd700;
+  }
+  .back {
+    font-size: 22px;
+    cursor: pointer;
+    color: #ffd700;
+    transition: transform 0.3s;
+  }
+  .back:hover { transform: translateX(-5px); }
 
-  <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: radial-gradient(circle at top, #0a0a0a, #000);
-      color: #fff;
-      margin: 0;
-      text-align: center;
-      overflow-x: hidden;
-    }
+  /* ======= مشغل الفيديو ======= */
+  .player {
+    position: relative;
+    width: 100%;
+    max-width: 950px;
+    margin: 25px auto;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+    background: #000;
+  }
 
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #111;
-      padding: 14px 18px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
-    }
+  #player {
+    width: 100%;
+    height: 65vh;
+    border-radius: 18px;
+  }
 
-    .title {
-      color: #ffd700;
-      font-weight: 700;
-      font-size: 18px;
-      text-shadow: 0 0 8px #ffd700;
-    }
+  /* ======= قسم التشغيل الخارجي ======= */
+  .external {
+    background: #111;
+    padding: 35px 10px 50px;
+    border-top: 2px solid #222;
+    box-shadow: 0 -5px 15px rgba(255, 215, 0, 0.05);
+  }
+  .external h2 {
+    color: #ffd700;
+    font-size: 22px;
+    margin-bottom: 25px;
+    text-shadow: 0 0 10px #ffd700;
+    position: relative;
+  }
+  .external h2::after {
+    content: "";
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #ffd700, #ffb700);
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 2px;
+  }
 
-    .back {
-      font-size: 22px;
-      cursor: pointer;
-      color: #ffd700;
-      transition: transform 0.3s;
-    }
+  .apps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    justify-content: center;
+  }
+  .app-btn {
+    background: #1b1b1b;
+    border: 1px solid #333;
+    border-radius: 14px;
+    padding: 15px 10px;
+    width: 130px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .app-btn:hover {
+    transform: translateY(-6px);
+    background: linear-gradient(180deg, #222, #111);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+  }
+  .app-btn img {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 8px;
+  }
+  .app-btn span {
+    display: block;
+    color: #ffd700;
+    font-weight: 600;
+    font-size: 15px;
+  }
 
-    .back:hover {
-      transform: translateX(-5px);
-    }
+  /* ======= Toast ======= */
+  #toast {
+    visibility: hidden;
+    min-width: 260px;
+    background: linear-gradient(90deg, #222, #1a1a1a);
+    color: #ffd700;
+    text-align: center;
+    border-radius: 12px;
+    padding: 14px;
+    position: fixed;
+    z-index: 2000;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+    opacity: 0;
+    transition: opacity 0.5s, bottom 0.5s;
+  }
+  #toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 55px;
+  }
+</style>
 
-    .player {
-      position: relative;
-      width: 100%;
-      max-width: 950px;
-      margin: 25px auto;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-      background: #000;
-    }
+<!-- Plyr CSS -->
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
-    video, iframe {
-      width: 100%;
-      height: 65vh;
-      border: none;
-      display: block;
-    }
-
-    .external {
-      background: #111;
-      padding: 35px 10px 50px;
-      border-top: 2px solid #222;
-      box-shadow: 0 -5px 15px rgba(255, 215, 0, 0.05);
-    }
-
-    .external h2 {
-      color: #ffd700;
-      font-size: 22px;
-      margin-bottom: 25px;
-      text-shadow: 0 0 10px #ffd700;
-      position: relative;
-    }
-
-    .external h2::after {
-      content: "";
-      width: 60px;
-      height: 3px;
-      background: linear-gradient(90deg, #ffd700, #ffb700);
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-radius: 2px;
-    }
-
-    .apps {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      justify-content: center;
-    }
-
-    .app-btn {
-      background: #1b1b1b;
-      border: 1px solid #333;
-      border-radius: 14px;
-      padding: 15px 10px;
-      width: 130px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .app-btn:hover {
-      transform: translateY(-6px);
-      background: linear-gradient(180deg, #222, #111);
-      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-    }
-
-    .app-btn img {
-      width: 50px;
-      height: 50px;
-      margin-bottom: 8px;
-    }
-
-    .app-btn span {
-      display: block;
-      color: #ffd700;
-      font-weight: 600;
-      font-size: 15px;
-    }
-
-    #toast {
-      visibility: hidden;
-      min-width: 260px;
-      background: linear-gradient(90deg, #222, #1a1a1a);
-      color: #ffd700;
-      text-align: center;
-      border-radius: 12px;
-      padding: 14px;
-      position: fixed;
-      z-index: 2000;
-      left: 50%;
-      bottom: 30px;
-      transform: translateX(-50%);
-      font-size: 1rem;
-      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
-      opacity: 0;
-      transition: opacity 0.5s, bottom 0.5s;
-    }
-
-    #toast.show {
-      visibility: visible;
-      opacity: 1;
-      bottom: 55px;
-    }
-  </style>
 </head>
 <body>
 
-  <!-- الشريط العلوي -->
+  <!-- ======= الشريط العلوي ======= -->
   <div class="topbar">
     <div class="back" onclick="history.back()">⬅</div>
     <div class="title">تشغيل الفيديو 🎬</div>
     <div style="width:25px;"></div>
   </div>
 
-  <!-- مشغل الفيديو -->
+  <!-- ======= مشغل الفيديو ======= -->
   <div class="player">
-    <video id="player" playsinline controls></video>
+    <video id="player" playsinline controls muted></video>
   </div>
 
-  <!-- قسم التشغيل الخارجي -->
+  <!-- ======= قسم التشغيل الخارجي ======= -->
   <div class="external">
     <h2>تشغيل بواسطة...</h2>
     <div class="apps">
@@ -190,67 +180,72 @@
   <!-- Plyr JS -->
   <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 
-  <!-- Script -->
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const url = params.get('url');
-    const playerElement = document.getElementById("player");
-
-    if (!url) {
-      playerElement.outerHTML = "<p style='color:#ffd700;margin:30px;font-size:18px;'>لم يتم تحديد رابط الفيديو 😢</p>";
-    } else {
-      let source = {};
-
-      if (url.includes("youtube.com") || url.includes("youtu.be")) {
-        const id = extractYouTubeID(url);
-        source = {
-          type: 'video',
-          sources: [{
-            src: id,
-            provider: 'youtube'
-          }]
-        };
-      } else {
-        source = {
-          type: 'video',
-          sources: [{
-            src: url,
-            type: 'video/mp4'
-          }]
-        };
-      }
-
-      const player = new Plyr('#player', {
-        autoplay: true,
-        muted: true,
-        youtube: {
-          noCookie: true,
-          rel: 0,
-          modestbranding: 1
-        }
-      });
-
-      player.source = source;
-    }
-
+    // استخراج ID يوتيوب من روابط مختلفة
     function extractYouTubeID(link) {
       try {
         const u = new URL(link);
-
         if (u.hostname.includes("youtu.be")) return u.pathname.slice(1);
-
         if (u.searchParams.get("v")) return u.searchParams.get("v");
-
         const match = u.pathname.match(/\/embed\/([^/?#]+)/);
         if (match) return match[1];
-
         return "";
       } catch {
         return "";
       }
     }
 
-    // Toast
+    // قراءة الرابط من الـ URL
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get('url');
+    const playerElement = document.getElementById('player');
+
+    // إنشاء مشغل Plyr مع خيارات للموبايل
+    const player = new Plyr('#player', {
+      autoplay: true,
+      muted: true,
+      playsinline: true,
+      youtube: {
+        noCookie: true,
+        rel: 0,
+        modestbranding: 1,
+        autoplay: 1
+      }
+    });
+
+    if (!url) {
+      playerElement.outerHTML = "<p style='color:#ffd700;margin:30px;font-size:18px;'>لم يتم تحديد رابط الفيديو 😢</p>";
+    } else {
+      if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        const id = extractYouTubeID(url);
+        if (id) {
+          player.source = {
+            type: 'video',
+            sources: [
+              {
+                src: id,
+                provider: 'youtube'
+              }
+            ]
+          };
+        } else {
+          playerElement.outerHTML = "<p style='color:#ffd700;margin:30px;font-size:18px;'>رابط يوتيوب غير صالح 😢</p>";
+        }
+      } else {
+        // فيديو عادي (mp4 أو غيره)
+        player.source = {
+          type: 'video',
+          sources: [
+            {
+              src: url,
+              type: 'video/mp4' // تأكد نوع الفيديو حسب الحاجة
+            }
+          ]
+        };
+      }
+    }
+
+    // عرض رسالة toast عند الضغط على مشغل خارجي
     function showToast(msg) {
       const toast = document.getElementById("toast");
       toast.textContent = msg;
