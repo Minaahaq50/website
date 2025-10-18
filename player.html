@@ -4,8 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>تشغيل الفيديو - منصة THE BEST</title>
-<!-- Plyr CSS -->
-<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
 
@@ -89,12 +87,10 @@
   }
 
   .apps {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 18px;
-    justify-items: center;
-    max-width: 300px;
-    margin: 0 auto;
+    justify-content: center;
   }
   .app-btn {
     background: #1b1b1b;
@@ -160,7 +156,7 @@
 
   <!-- ======= مشغل الفيديو ======= -->
   <div class="player">
-    <div id="videoContainer"></div>
+    <iframe id="videoFrame" allowfullscreen allow="autoplay"></iframe>
   </div>
 
   <!-- ======= قسم التشغيل الخارجي ======= -->
@@ -177,27 +173,21 @@
 
   <div id="toast">🚧 سيتم إضافة هذه الميزة قريبًا 🔜</div>
 
-<!-- Plyr JS -->
-<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 <script>
   // ======= تشغيل الفيديو =======
   const params = new URLSearchParams(window.location.search);
   const url = params.get('url');
-  const container = document.getElementById("videoContainer");
+  const frame = document.getElementById("videoFrame");
 
   if (!url) {
-    container.innerHTML = "<p style='color:#ffd700;margin:30px;font-size:18px;'>لم يتم تحديد رابط الفيديو 😢</p>";
+    frame.outerHTML = "<p style='color:#ffd700;margin:30px;font-size:18px;'>لم يتم تحديد رابط الفيديو 😢</p>";
   } else {
     if (url.includes("youtube.com") || url.includes("youtu.be")) {
       const id = extractYouTubeID(url);
-      container.innerHTML = `<div data-plyr-provider="youtube" data-plyr-embed-id="${id}"></div>`;
+      frame.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&showinfo=0`;
     } else {
-      container.innerHTML = `<video controls><source src="${url}" type="video/mp4"></video>`;
+      frame.outerHTML = `<video controls autoplay src="${url}" style="border-radius:18px;"></video>`;
     }
-    // تهيئة Plyr
-    const player = new Plyr(container.querySelector('div, video'), {
-      autoplay: true
-    });
   }
 
   function extractYouTubeID(link) {
