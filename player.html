@@ -43,7 +43,7 @@
   }
   .back:hover { transform: translateX(-5px); }
 
-  #player {
+  #player, iframe {
     max-width: 950px;
     width: 100%;
     height: 60vh;
@@ -172,7 +172,9 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const url = params.get('url');
-    const playerContainer = document.getElementById('player');
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    const playerElement = document.getElementById('player');
 
     function getYouTubeID(link) {
       try {
@@ -188,7 +190,7 @@
     }
 
     if (!url) {
-      playerContainer.style.display = 'none';
+      playerElement.style.display = 'none';
       const errorEl = document.createElement('p');
       errorEl.className = 'error-msg';
       errorEl.textContent = 'لم يتم تحديد رابط الفيديو 😢';
@@ -197,30 +199,44 @@
       const ytID = getYouTubeID(url);
 
       if (ytID) {
-        // نستخدم iframe مخصص لـ Plyr (يدعم الموبايل)
-        const iframe = document.createElement('iframe');
-        iframe.src = `https://www.youtube.com/embed/${ytID}?playsinline=1&modestbranding=1&rel=0`;
-        iframe.allow = "autoplay; encrypted-media; picture-in-picture;";
-        iframe.allowFullscreen = true;
-        iframe.style.width = "100%";
-        iframe.style.height = "100%";
-        iframe.style.border = "none";
-        iframe.style.borderRadius = "18px";
-        playerContainer.appendChild(iframe);
-
-        new Plyr(iframe, {
-          youtube: { noCookie: true },
-          controls: [
-            'play-large', 'play', 'progress', 'current-time',
-            'mute', 'volume', 'settings', 'fullscreen'
-          ]
-        });
+        if (isMobile) {
+          // ✅ على الموبايل شغل iframe (amform)
+          const iframe = document.createElement("iframe");
+          iframe.src = `https://www.youtube.com/embed/${ytID}?autoplay=1&modestbranding=1&rel=0&playsinline=1`;
+          iframe.width = "100%";
+          iframe.height = "100%";
+          iframe.style.border = "none";
+          iframe.allow = "autoplay; fullscreen";
+          playerElement.replaceWith(iframe);
+        } else {
+          // ✅ على اللابتوب شغل نظام Plyr.io
+          const player = new Plyr('#player', {
+            controls: [
+              'play-large', 'play', 'progress', 'current-time',
+              'mute', 'volume', 'captions', 'settings',
+              'pip', 'airplay', 'fullscreen'
+            ],
+            settings: ['quality', 'speed', 'loop'],
+            ratio: '16:9'
+          });
+          player.source = {
+            type: 'video',
+            sources: [{
+              src: ytID,
+              provider: 'youtube',
+            }]
+          };
+        }
       } else {
+        // 🎬 فيديو عادي (MP4)
         const player = new Plyr('#player', {
           controls: [
             'play-large', 'play', 'progress', 'current-time',
-            'mute', 'volume', 'settings', 'fullscreen'
-          ]
+            'mute', 'volume', 'captions', 'settings',
+            'pip', 'airplay', 'fullscreen'
+          ],
+          settings: ['quality', 'speed', 'loop'],
+          ratio: '16:9'
         });
         player.source = {
           type: 'video',
@@ -245,6 +261,5 @@
       });
     });
   </script>
-
 </body>
 </html>
