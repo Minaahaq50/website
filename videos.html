@@ -101,12 +101,13 @@ onValue(ref(db, 'videos'), snapshot => {
 
   // ✅ جمع الفيديوهات حسب المحاضرة
   const lecturesMap = {};
-  Object.values(data).forEach(v => {
+Object.values(data).forEach(v => {
     if(v.subject===subject && v.teacher===teacher && v.chapter===chapter){
       if(!lecturesMap[v.lecture]) lecturesMap[v.lecture] = [];
       lecturesMap[v.lecture].push(v);
     }
-  });
+});
+
 
   if(Object.keys(lecturesMap).length===0){
     videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد محاضرات في هذا الباب.</div>';
