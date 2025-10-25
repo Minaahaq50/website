@@ -109,7 +109,7 @@ onValue(ref(db, 'videos'), snapshot => {
 
     box.querySelector('.thumb').addEventListener('click', () => {
       // فتح في صفحة جديدة مع تمرير رابط الفيديو
-      const videoPage = `video_player.html?url=${encodeURIComponent(video.url)}`;
+      const videoPage = `player.html?url=${encodeURIComponent(video.url)}`;
       window.location.href = videoPage;
     });
 
