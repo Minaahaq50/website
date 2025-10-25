@@ -114,14 +114,14 @@ onValue(ref(db, 'videos'), snapshot => {
   }
 
   videosContainer.innerHTML = '';
-  Object.entries(lecturesMap).forEach(([lectureName, videos])=>{
+  Object.entries(lecturesMap).forEach(([lecture, videos])=>{
     const box = document.createElement('div');
     box.className = 'video-box';
     const thumb = videos[0].imageUrl || 'https://via.placeholder.com/300x200?text=VIDEO';
     box.innerHTML = `
       <div class="video-title">${lectureName}</div>
       <div class="video-teacher">المدرس: ${teacher} | ${chapter}</div>
-      <div class="thumb" data-lecture='${lectureName}'>
+      <div class="thumb" data-lecture='${lecture}'>
         <img src="${thumb}">
         <div class="play-btn">▶</div>
       </div>
