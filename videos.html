@@ -84,7 +84,7 @@ onValue(ref(db, 'videos'), snapshot => {
     return;
   }
 
-  // 🔹 فلترة الفيديوهات حسب المادة والمدرس والباب
+  // فلترة الفيديوهات حسب المادة والمدرس والباب
   const videos = Object.values(data).filter(v => 
     v.subject === subject && 
     v.teacher === teacher && 
@@ -93,69 +93,44 @@ onValue(ref(db, 'videos'), snapshot => {
   );
 
   if(videos.length === 0){
-    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد فيديوهات في هذا الباب.</div>';
+    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد محاضرات في هذا الباب.</div>';
     return;
   }
 
-  // 🔹 تجميع الفيديوهات حسب المحاضرة (lecture)
-  const grouped = {};
-  videos.forEach(v => {
-    if(!grouped[v.lecture]) grouped[v.lecture] = [];
-    grouped[v.lecture].push(v);
-  });
+  // تجميع الفيديوهات حسب اسم المحاضرة (إزالة التكرار)
+  const lectures = [...new Set(videos.map(v => v.lecture))];
 
   videosContainer.innerHTML = '';
 
-  // 🔹 عرض المحاضرات بشكل منظم
-  Object.keys(grouped).forEach(lectureName => {
-    const lectureBox = document.createElement('div');
-    lectureBox.className = 'video-box';
-    lectureBox.style.cursor = 'pointer';
-    lectureBox.innerHTML = `
+  // عرض كل محاضرة كفيديو
+  lectures.forEach(lectureName => {
+    const box = document.createElement('div');
+    box.className = 'video-box';
+    box.style.cursor = 'pointer';
+
+    // الحصول على أول فيديو في المحاضرة لاستخدام صورته المصغّرة
+    const lectureVideos = videos.filter(v => v.lecture === lectureName);
+    const firstVideo = lectureVideos[0];
+    const youtube = firstVideo && isYouTubeUrl(firstVideo.url);
+    const ytId = youtube ? getYouTubeId(firstVideo.url) : '';
+    const thumb = firstVideo?.imageUrl || (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'https://via.placeholder.com/300x200?text=Lecture');
+
+    // تصميم كارت المحاضرة
+    box.innerHTML = `
+      <div class="thumb">
+        <img src="${thumb}" alt="صورة المحاضرة">
+        <div class="play-btn">▶</div>
+      </div>
       <div class="video-title">${lectureName}</div>
-      <div class="video-teacher">اضغط لعرض الأجزاء</div>
-      <div class="parts" style="display:none; margin-top:10px;"></div>
     `;
 
-    const partsContainer = lectureBox.querySelector('.parts');
-
-    // إنشاء الأجزاء التابعة لكل محاضرة
-    grouped[lectureName].forEach(video => {
-      const youtube = isYouTubeUrl(video.url);
-      const ytId = youtube ? getYouTubeId(video.url) : '';
-      const thumb = video.imageUrl || (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'https://via.placeholder.com/300x200?text=VIDEO');
-      
-      const part = document.createElement('div');
-      part.style.margin = '10px 0';
-      part.style.border = '1px solid #333';
-      part.style.borderRadius = '8px';
-      part.style.padding = '6px';
-      part.style.background = '#111';
-      part.style.display = 'flex';
-      part.style.alignItems = 'center';
-      part.style.gap = '10px';
-      part.style.cursor = 'pointer';
-      
-      part.innerHTML = `
-        <img src="${thumb}" width="100" height="60" style="border-radius:6px;object-fit:cover;">
-        <span>${video.title}</span>
-      `;
-
-      part.addEventListener('click', () => {
-        const videoPage = `player.html?url=${encodeURIComponent(video.url)}`;
-        window.location.href = videoPage;
-      });
-
-      partsContainer.appendChild(part);
+    // الضغط يفتح صفحة التشغيل
+    box.addEventListener('click', () => {
+      const lecturePage = `player.html?subject=${encodeURIComponent(subject)}&teacher=${encodeURIComponent(teacher)}&chapter=${encodeURIComponent(chapter)}&lecture=${encodeURIComponent(lectureName)}`;
+      window.location.href = lecturePage;
     });
 
-    // 🔹 عند الضغط على المحاضرة، تظهر الأجزاء أو تختفي
-    lectureBox.querySelector('.video-title').addEventListener('click', () => {
-      const isVisible = partsContainer.style.display === 'block';
-      partsContainer.style.display = isVisible ? 'none' : 'block';
-    });
-
-    videosContainer.appendChild(lectureBox);
+    videosContainer.appendChild(box);
   });
 });
 </script>
