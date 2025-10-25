@@ -22,9 +22,6 @@
   .thumb { position:relative; cursor:pointer; border-radius:10px; overflow:hidden; background:#000; height:200px; display:flex; align-items:center; justify-content:center; }
   .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
   .thumb .play-btn { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:50px; color:#ffd700; text-shadow:0 0 10px rgba(0,0,0,.9); }
-  #videoModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:20px; }
-  #videoModal .modal-wrap { width:100%; max-width:980px; background:#000; border-radius:12px; overflow:hidden; }
-  #videoModal iframe { width:100%; height:560px; border:0; display:block; }
 </style>
 </head>
 <body>
@@ -34,102 +31,91 @@
     <div style="text-align:center; font-size:18px; color:#ffd700;">جارٍ التحميل...</div>
   </div>
 
-  <div id="videoModal" aria-hidden="true">
-    <div class="modal-wrap">
-      <iframe id="videoFrame" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
-    </div>
-  </div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyCdhj73cKJc2J2_tDHw2-89EemZx-EGMJQ",
+  authDomain: "alamer-526ff.firebaseapp.com",
+  databaseURL: "https://alamer-526ff-default-rtdb.firebaseio.com",
+  projectId: "alamer-526ff",
+  storageBucket: "alamer-526ff.firebasestorage.app",
+  messagingSenderId: "523879269039",
+  appId: "1:523879269039:web:634861aa34641bfebf8a5a",
+};
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCdhj73cKJc2J2_tDHw2-89EemZx-EGMJQ",
-      authDomain: "alamer-526ff.firebaseapp.com",
-      databaseURL: "https://alamer-526ff-default-rtdb.firebaseio.com",
-      projectId: "alamer-526ff",
-      storageBucket: "alamer-526ff.firebasestorage.app",
-      messagingSenderId: "523879269039",
-      appId: "1:523879269039:web:634861aa34641bfebf8a5a",
-    };
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+const urlParams = new URLSearchParams(window.location.search);
+const subject = urlParams.get('subject');
+const teacher = urlParams.get('teacher');
+const chapter = urlParams.get('chapter');
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const subject = urlParams.get('subject');
-    const teacher = urlParams.get('teacher');
-    const chapter = urlParams.get('chapter'); // الباب (باب أول، تاني، معسكرات...)
+const videosContainer = document.getElementById('videos-container');
+const backBtn = document.getElementById('back');
 
-    const videosContainer = document.getElementById('videos-container');
-    const backBtn = document.getElementById('back');
+backBtn.onclick = () => {
+  if(subject){
+    window.location.href = `teachers.html?subject=${encodeURIComponent(subject)}`;
+  } else {
+    window.location.href = 'subjects.html';
+  }
+};
 
-    backBtn.onclick = () => {
-      if(subject){
-        window.location.href = teachers.html?subject=${encodeURIComponent(subject)};
-      } else {
-        window.location.href = 'subjects.html';
-      }
-    };
+function isYouTubeUrl(url) {
+  return /youtu\.be|youtube\.com/.test(url);
+}
+function getYouTubeId(url) {
+  try {
+    const u = new URL(url);
+    if(u.hostname.includes('youtu.be')) return u.pathname.replace('/','');
+    if(u.searchParams.get('v')) return u.searchParams.get('v');
+    const m = u.pathname.match(/\/embed\/([^/?#]+)/);
+    return m ? m[1] : '';
+  } catch { return ''; }
+}
 
-    let currentVideos = [];
-    let currentIndex = 0;
+onValue(ref(db, 'videos'), snapshot => {
+  const data = snapshot.val() || {};
+  if(!subject || !teacher || !chapter){
+    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لم يتم تحديد المادة أو المدرس أو الباب.</div>';
+    return;
+  }
 
-    function isYouTubeUrl(url) {
-      return /youtu\.be|youtube\.com/.test(url);
-    }
-    function getYouTubeId(url) {
-      try {
-        const u = new URL(url);
-        if(u.hostname.includes('youtu.be')) return u.pathname.replace('/','');
-        if(u.searchParams.get('v')) return u.searchParams.get('v');
-        const m = u.pathname.match(/\/embed\/([^/?#]+)/);
-        return m ? m[1] : '';
-      } catch { return ''; }
-    }
+  const videos = Object.values(data).filter(v => 
+    v.subject === subject && v.teacher === teacher && v.chapter === chapter
+  );
 
-    onValue(ref(db, 'videos'), snapshot => {
-      const data = snapshot.val() || {};
-      if(!subject || !teacher || !chapter){
-        videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لم يتم تحديد المادة أو المدرس أو الباب.</div>';
-        return;
-      }
+  if(videos.length === 0){
+    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد فيديوهات في هذا الباب.</div>';
+    return;
+  }
 
-      currentVideos = Object.values(data).filter(v => 
-        v.subject === subject && v.teacher === teacher && v.chapter === chapter
-      );
+  videosContainer.innerHTML = '';
+  videos.forEach(video => {
+    const box = document.createElement('div');
+    box.className = 'video-box';
+    const youtube = isYouTubeUrl(video.url);
+    const ytId = youtube ? getYouTubeId(video.url) : '';
+    const thumb = video.imageUrl || (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'https://via.placeholder.com/300x200?text=VIDEO');
 
-      if(currentVideos.length === 0){
-        videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد فيديوهات في هذا الباب.</div>';
-        return;
-      }
+    box.innerHTML = `
+      <div class="video-title">${video.title}</div>
+      <div class="video-teacher">المدرس: ${video.teacher} | ${video.chapter}</div>
+      <div class="thumb"><img src="${thumb}"><div class="play-btn">▶</div></div>
+    `;
 
-      videosContainer.innerHTML = '';
-      currentVideos.forEach((video, idx) => {
-        const box = document.createElement('div');
-        box.className = 'video-box';
-        const youtube = isYouTubeUrl(video.url);
-        const ytId = youtube ? getYouTubeId(video.url) : '';
-        const thumb = video.imageUrl || (ytId ? https://img.youtube.com/vi/${ytId}/hqdefault.jpg : 'https://via.placeholder.com/300x200?text=VIDEO');
-
-        box.innerHTML = `
-          <div class="video-title">${video.title}</div>
-          <div class="video-teacher">المدرس: ${video.teacher} | ${video.chapter}</div>
-          ${youtube ? <div class="thumb" data-idx="${idx}"><img src="${thumb}"><div class="play-btn">▶</div></div> :
-          <video controls poster="${thumb}" style="width:100%; height:250px; border-radius:10px;"><source src="${video.url}" type="video/mp4"></video>}
-        `;
-
-        if(youtube){
-          box.querySelector('.thumb').addEventListener('click', () => {
-            document.getElementById('videoFrame').src = https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0;
-            document.getElementById('videoModal').style.display = 'flex';
-          });
-        }
-
-        videosContainer.appendChild(box);
-      });
+    box.querySelector('.thumb').addEventListener('click', () => {
+      // فتح في صفحة جديدة مع تمرير رابط الفيديو
+      const videoPage = `video_player.html?url=${encodeURIComponent(video.url)}`;
+      window.location.href = videoPage;
     });
-  </script>
+
+    videosContainer.appendChild(box);
+  });
+});
+</script>
 </body>
 </html>
