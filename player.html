@@ -4,75 +4,112 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>مشغل المحاضرة - منصة THE BEST</title>
+
+<!-- ✅ استدعاء مكتبة Plyr -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css" />
+
 <style>
   body {
     font-family: 'Cairo', sans-serif;
     background: #0d0d0d;
     color: #fff;
-    padding: 20px;
+    margin: 0;
+    padding: 0;
   }
 
-  h1 {
+  header {
+    background: #1a1a1a;
     color: #ffd700;
+    padding: 15px;
     text-align: center;
-    margin-bottom: 10px;
+    font-size: 22px;
+    box-shadow: 0 0 10px rgba(255,215,0,0.2);
   }
 
-  #back {
-    color: #ffd700;
-    cursor: pointer;
-    text-align: center;
-    margin-bottom: 20px;
+  #container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 25px;
+    gap: 25px;
   }
 
-  #player {
+  /* مشغل الفيديو */
+  #video-wrapper {
     width: 100%;
-    max-width: 900px;
-    height: 480px;
-    display: block;
-    margin: 0 auto 30px;
+    max-width: 950px;
     border-radius: 12px;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.25);
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(255,215,0,0.2);
+    background: #000;
   }
 
-  /* تصميم قائمة الأجزاء */
+  iframe, video {
+    width: 100%;
+    height: 520px;
+    display: block;
+  }
+
+  /* قائمة الأجزاء */
   #parts-container {
-    max-width: 900px;
-    margin: 0 auto;
+    width: 100%;
+    max-width: 950px;
     background: #1a1a1a;
     border-radius: 12px;
-    padding: 10px 0;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
+    box-shadow: 0 0 20px rgba(255,215,0,0.1);
+    overflow: hidden;
   }
 
   .part-item {
     padding: 15px 20px;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+    border-bottom: 1px solid rgba(255,215,0,0.1);
     color: #ffd700;
     cursor: pointer;
-    transition: background 0.2s ease-in-out;
+    transition: all 0.25s;
+    font-size: 17px;
   }
 
   .part-item:hover {
-    background: rgba(255, 215, 0, 0.08);
+    background: rgba(255,215,0,0.08);
   }
 
   .part-item.active {
-    background: rgba(255, 215, 0, 0.2);
+    background: rgba(255,215,0,0.25);
     color: #fff;
     font-weight: bold;
+  }
+
+  #back {
+    color: #ffd700;
+    text-align: center;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+
+  @media (max-width: 768px) {
+    iframe, video { height: 300px; }
   }
 </style>
 </head>
 <body>
-  <h1>مشغل المحاضرة</h1>
-  <div id="back">⬅ العودة إلى القائمة</div>
 
-  <iframe id="player" src="" frameborder="0" allowfullscreen></iframe>
+<header>🎓 مشغل المحاضرة</header>
+
+<div id="container">
+  <div id="video-wrapper">
+    <!-- المشغل سيُضاف هنا تلقائيًا -->
+  </div>
 
   <div id="parts-container">
-    <div style="text-align:center; font-size:18px; color:#ffd700;">جارٍ تحميل الأجزاء...</div>
+    <div style="text-align:center; font-size:18px; color:#ffd700; padding:15px;">جارٍ تحميل الأجزاء...</div>
   </div>
+
+  <div id="back">⬅ العودة إلى قائمة المحاضرات</div>
+</div>
+
+<!-- ✅ مكتبة Plyr -->
+<script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.js"></script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
@@ -91,36 +128,38 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// قراءة البيانات من الرابط
 const urlParams = new URLSearchParams(window.location.search);
 const subject = urlParams.get('subject');
 const teacher = urlParams.get('teacher');
 const chapter = urlParams.get('chapter');
 const lecture = urlParams.get('lecture');
 
-const backBtn = document.getElementById('back');
-const player = document.getElementById('player');
+const videoWrapper = document.getElementById('video-wrapper');
 const partsContainer = document.getElementById('parts-container');
+const backBtn = document.getElementById('back');
 
 backBtn.onclick = () => {
   window.location.href = `videos.html?subject=${encodeURIComponent(subject)}&teacher=${encodeURIComponent(teacher)}&chapter=${encodeURIComponent(chapter)}`;
 };
 
-// دوال اليوتيوب
+// 🔹 دوال مساعدة
 function isYouTubeUrl(url) {
   return /youtu\.be|youtube\.com/.test(url);
 }
+
 function getYouTubeId(url) {
   try {
     const u = new URL(url);
-    if(u.hostname.includes('youtu.be')) return u.pathname.replace('/','');
-    if(u.searchParams.get('v')) return u.searchParams.get('v');
+    if (u.hostname.includes('youtu.be')) return u.pathname.replace('/', '');
+    if (u.searchParams.get('v')) return u.searchParams.get('v');
     const m = u.pathname.match(/\/embed\/([^/?#]+)/);
     return m ? m[1] : '';
   } catch { return ''; }
 }
 
-// تحميل الأجزاء من Firebase
+let plyrPlayer = null; // هنستخدمه فقط للفيديوهات الـ MP4
+
+// 🔥 تحميل الأجزاء من Firebase
 onValue(ref(db, 'videos'), snapshot => {
   const data = snapshot.val() || {};
   const allVideos = Object.values(data);
@@ -131,36 +170,64 @@ onValue(ref(db, 'videos'), snapshot => {
     v.lecture === lecture
   );
 
-  if(parts.length === 0){
-    partsContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد أجزاء لهذه المحاضرة.</div>';
+  if (parts.length === 0) {
+    partsContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700; padding:15px;">لا توجد أجزاء لهذه المحاضرة.</div>';
     return;
   }
 
-  // تشغيل أول فيديو افتراضيًا
-  const firstVideo = parts[0];
-  const firstId = getYouTubeId(firstVideo.url);
-  player.src = `https://www.youtube.com/embed/${firstId}?autoplay=1`;
-  
-  // عرض قائمة الأجزاء
+  // ✅ تشغيل أول فيديو تلقائيًا
+  loadVideo(parts[0].url);
+
+  // ✅ عرض قائمة الأجزاء
   partsContainer.innerHTML = '';
   parts.forEach((part, index) => {
     const item = document.createElement('div');
     item.className = 'part-item';
     item.textContent = part.title || `الجزء ${index + 1}`;
 
-    // تفعيل أول جزء
     if (index === 0) item.classList.add('active');
 
     item.addEventListener('click', () => {
       document.querySelectorAll('.part-item').forEach(i => i.classList.remove('active'));
       item.classList.add('active');
-      const vid = getYouTubeId(part.url);
-      player.src = `https://www.youtube.com/embed/${vid}?autoplay=1`;
+      loadVideo(part.url);
     });
 
     partsContainer.appendChild(item);
   });
 });
+
+// ✅ دالة التحميل الذكي (تبدل بين YouTube و Plyr)
+function loadVideo(url) {
+  videoWrapper.innerHTML = ''; // تنظيف المشغل السابق
+  if (plyrPlayer) {
+    plyrPlayer.destroy(); // حذف مشغل Plyr القديم
+    plyrPlayer = null;
+  }
+
+  if (isYouTubeUrl(url)) {
+    const ytId = getYouTubeId(url);
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+    iframe.allowFullscreen = true;
+    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    videoWrapper.appendChild(iframe);
+  } else if (url.endsWith('.mp4')) {
+    const video = document.createElement('video');
+    video.controls = true;
+    video.playsInline = true;
+    video.src = url;
+    videoWrapper.appendChild(video);
+    plyrPlayer = new Plyr(video, {
+      controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+      clickToPlay: true,
+    });
+    video.play();
+  } else {
+    videoWrapper.innerHTML = '<div style="padding:40px; text-align:center; color:#ffd700;">⚠️ لا يمكن تشغيل هذا النوع من الفيديوهات.</div>';
+  }
+}
 </script>
+
 </body>
 </html>
