@@ -90,9 +90,10 @@ const videosContainer = document.getElementById('videos-container');
 const backBtn = document.getElementById('backBtn');
 backBtn.onclick = () => window.history.back();
 
-onValue(ref(db, 'videos'), snapshot => {
+// ✅ تعديل هنا: نقرأ البيانات من الجذر مباشرة
+onValue(ref(db, '/'), snapshot => {
   const data = snapshot.val() || {};
-  console.log("Data from Firebase:", data); // تتأكد إذا الداتا وصلت
+  console.log("Data from Firebase:", data);
 
   if(!subject || !teacher || !chapter){
     videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لم يتم تحديد المادة أو المدرس أو الباب.</div>';
@@ -101,19 +102,19 @@ onValue(ref(db, 'videos'), snapshot => {
 
   const lecturesMap = {};
   Object.values(data).forEach(v => {
-    if(v.subject===subject && v.teacher===teacher && v.chapter===chapter){
+    if(v.subject === subject && v.teacher === teacher && v.chapter === chapter){
       if(!lecturesMap[v.lecture]) lecturesMap[v.lecture] = [];
       lecturesMap[v.lecture].push(v);
     }
   });
 
-  if(Object.keys(lecturesMap).length===0){
+  if(Object.keys(lecturesMap).length === 0){
     videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد محاضرات في هذا الباب.</div>';
     return;
   }
 
   videosContainer.innerHTML = '';
-  Object.entries(lecturesMap).forEach(([lecture, videos])=>{
+  Object.entries(lecturesMap).forEach(([lecture, videos]) => {
     const box = document.createElement('div');
     box.className = 'video-box';
     const thumb = videos[0].imageUrl || 'https://via.placeholder.com/300x200?text=VIDEO';
@@ -125,9 +126,9 @@ onValue(ref(db, 'videos'), snapshot => {
         <div class="play-btn">▶</div>
       </div>
     `;
-    box.querySelector('.thumb').addEventListener('click', ()=>{
-      const urls = videos.map(v=>encodeURIComponent(v.url)).join(',');
-      const titles = videos.map(v=>encodeURIComponent(v.title)).join(',');
+    box.querySelector('.thumb').addEventListener('click', () => {
+      const urls = videos.map(v => encodeURIComponent(v.url)).join(',');
+      const titles = videos.map(v => encodeURIComponent(v.title)).join(',');
       window.location.href = player.html?urls=${urls}&titles=${titles}&lecture=${encodeURIComponent(lecture)}&teacher=${encodeURIComponent(teacher)}&chapter=${encodeURIComponent(chapter)};
     });
     videosContainer.appendChild(box);
