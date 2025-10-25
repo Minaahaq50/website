@@ -3,231 +3,263 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>مشغل المحاضرة - منصة THE BEST</title>
-
-<!-- ✅ استدعاء مكتبة Plyr -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css" />
-
+<title>تشغيل الفيديو - منصة THE BEST</title>
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+
   body {
     font-family: 'Cairo', sans-serif;
-    background: #0d0d0d;
+    background: radial-gradient(circle at top, #0a0a0a, #000);
     color: #fff;
     margin: 0;
-    padding: 0;
-  }
-
-  header {
-    background: #1a1a1a;
-    color: #ffd700;
-    padding: 15px;
     text-align: center;
-    font-size: 22px;
-    box-shadow: 0 0 10px rgba(255,215,0,0.2);
+    overflow-x: hidden;
   }
 
-  #container {
+  .topbar {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    padding: 25px;
-    gap: 25px;
+    justify-content: space-between;
+    background: #111;
+    padding: 14px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
   }
+  .title {
+    color: #ffd700;
+    font-weight: 700;
+    font-size: 18px;
+    text-shadow: 0 0 8px #ffd700;
+  }
+  .back {
+    font-size: 22px;
+    cursor: pointer;
+    color: #ffd700;
+    transition: transform 0.3s;
+    user-select: none;
+  }
+  .back:hover { transform: translateX(-5px); }
 
-  /* مشغل الفيديو */
-  #video-wrapper {
-    width: 100%;
+  #player, iframe {
     max-width: 950px;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 0 20px rgba(255,215,0,0.2);
+    width: 100%;
+    height: 60vh;
+    border-radius: 18px;
+    margin: 25px auto;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
     background: #000;
   }
 
-  iframe, video {
-    width: 100%;
-    height: 520px;
-    display: block;
+  .external {
+    background: #111;
+    padding: 35px 10px 50px;
+    border-top: 2px solid #222;
+    box-shadow: 0 -5px 15px rgba(255, 215, 0, 0.05);
   }
-
-  /* قائمة الأجزاء */
-  #parts-container {
-    width: 100%;
-    max-width: 950px;
-    background: #1a1a1a;
-    border-radius: 12px;
-    box-shadow: 0 0 20px rgba(255,215,0,0.1);
-    overflow: hidden;
-  }
-
-  .part-item {
-    padding: 15px 20px;
-    border-bottom: 1px solid rgba(255,215,0,0.1);
+  .external h2 {
     color: #ffd700;
-    cursor: pointer;
-    transition: all 0.25s;
-    font-size: 17px;
+    font-size: 22px;
+    margin-bottom: 25px;
+    text-shadow: 0 0 10px #ffd700;
+    position: relative;
+  }
+  .external h2::after {
+    content: "";
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #ffd700, #ffb700);
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 2px;
   }
 
-  .part-item:hover {
-    background: rgba(255,215,0,0.08);
+  .apps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    justify-content: center;
   }
-
-  .part-item.active {
-    background: rgba(255,215,0,0.25);
-    color: #fff;
-    font-weight: bold;
-  }
-
-  #back {
-    color: #ffd700;
+  .app-btn {
+    background: #1b1b1b;
+    border: 1px solid #333;
+    border-radius: 14px;
+    padding: 15px 10px;
+    width: 130px;
     text-align: center;
     cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
+    transition: all 0.3s ease;
+    user-select: none;
+  }
+  .app-btn:hover {
+    transform: translateY(-6px);
+    background: linear-gradient(180deg, #222, #111);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+  }
+  .app-btn img {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 8px;
+  }
+  .app-btn span {
+    display: block;
+    color: #ffd700;
+    font-weight: 600;
+    font-size: 15px;
   }
 
-  @media (max-width: 768px) {
-    iframe, video { height: 300px; }
+  #toast {
+    visibility: hidden;
+    min-width: 260px;
+    background: linear-gradient(90deg, #222, #1a1a1a);
+    color: #ffd700;
+    text-align: center;
+    border-radius: 12px;
+    padding: 14px;
+    position: fixed;
+    z-index: 2000;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+    opacity: 0;
+    transition: opacity 0.5s, bottom 0.5s;
+  }
+  #toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 55px;
+  }
+
+  .error-msg {
+    margin: 40px auto;
+    color: #ff4d4d;
+    font-size: 20px;
+    font-weight: 700;
+    text-shadow: 0 0 8px #ff0000;
   }
 </style>
 </head>
 <body>
 
-<header>🎓 مشغل المحاضرة</header>
-
-<div id="container">
-  <div id="video-wrapper">
-    <!-- المشغل سيُضاف هنا تلقائيًا -->
+  <div class="topbar">
+    <div class="back" onclick="history.back()">⬅</div>
+    <div class="title">تشغيل الفيديو 🎬</div>
+    <div style="width:25px;"></div>
   </div>
 
-  <div id="parts-container">
-    <div style="text-align:center; font-size:18px; color:#ffd700; padding:15px;">جارٍ تحميل الأجزاء...</div>
+  <video id="player" playsinline controls></video>
+
+  <div class="external">
+    <h2>تشغيل بواسطة...</h2>
+    <div class="apps">
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969200.png" alt="VLC Player"><span>VLC Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969215.png" alt="MX Player"><span>MX Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969220.png" alt="PlayIt"><span>PlayIt</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/5969/5969210.png" alt="KM Player"><span>KM Player</span></div>
+      <div class="app-btn"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube"><span>YouTube</span></div>
+    </div>
   </div>
 
-  <div id="back">⬅ العودة إلى قائمة المحاضرات</div>
-</div>
+  <div id="toast">🚧 سيتم إضافة هذه الميزة قريبًا 🔜</div>
 
-<!-- ✅ مكتبة Plyr -->
-<script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.js"></script>
+  <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get('url');
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
+    const playerElement = document.getElementById('player');
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCdhj73cKJc2J2_tDHw2-89EemZx-EGMJQ",
-  authDomain: "alamer-526ff.firebaseapp.com",
-  databaseURL: "https://alamer-526ff-default-rtdb.firebaseio.com",
-  projectId: "alamer-526ff",
-  storageBucket: "alamer-526ff.firebasestorage.app",
-  messagingSenderId: "523879269039",
-  appId: "1:523879269039:web:634861aa34641bfebf8a5a",
-};
+    function getYouTubeID(link) {
+      try {
+        const u = new URL(link);
+        if (u.hostname === 'youtu.be') return u.pathname.slice(1);
+        if (u.hostname.includes('youtube.com')) {
+          return u.searchParams.get('v') || (u.pathname.match(/\/embed\/([^/?#]+)/) || [])[1];
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    }
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+    if (!url) {
+      playerElement.style.display = 'none';
+      const errorEl = document.createElement('p');
+      errorEl.className = 'error-msg';
+      errorEl.textContent = 'لم يتم تحديد رابط الفيديو 😢';
+      document.body.insertBefore(errorEl, document.querySelector('.external'));
+    } else {
+      const ytID = getYouTubeID(url);
 
-const urlParams = new URLSearchParams(window.location.search);
-const subject = urlParams.get('subject');
-const teacher = urlParams.get('teacher');
-const chapter = urlParams.get('chapter');
-const lecture = urlParams.get('lecture');
+      if (ytID) {
+        if (isMobile) {
+          // ✅ على الموبايل شغل iframe (amform)
+          const iframe = document.createElement("iframe");
+          iframe.src = `https://www.youtube.com/embed/${ytID}?autoplay=1&modestbranding=1&rel=0&playsinline=1`;
+          iframe.width = "100%";
+          iframe.height = "100%";
+          iframe.style.border = "none";
+          iframe.allow = "autoplay; fullscreen";
+          playerElement.replaceWith(iframe);
+        } else {
+          // ✅ على اللابتوب شغل نظام Plyr.io
+          const player = new Plyr('#player', {
+            controls: [
+              'play-large', 'play', 'progress', 'current-time',
+              'mute', 'volume', 'captions', 'settings',
+              'pip', 'airplay', 'fullscreen'
+            ],
+            settings: ['quality', 'speed', 'loop'],
+            ratio: '16:9'
+          });
+          player.source = {
+            type: 'video',
+            sources: [{
+              src: ytID,
+              provider: 'youtube',
+            }]
+          };
+        }
+      } else {
+        // 🎬 فيديو عادي (MP4)
+        const player = new Plyr('#player', {
+          controls: [
+            'play-large', 'play', 'progress', 'current-time',
+            'mute', 'volume', 'captions', 'settings',
+            'pip', 'airplay', 'fullscreen'
+          ],
+          settings: ['quality', 'speed', 'loop'],
+          ratio: '16:9'
+        });
+        player.source = {
+          type: 'video',
+          sources: [{
+            src: url,
+            type: 'video/mp4',
+          }]
+        };
+      }
+    }
 
-const videoWrapper = document.getElementById('video-wrapper');
-const partsContainer = document.getElementById('parts-container');
-const backBtn = document.getElementById('back');
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2500);
+    }
 
-backBtn.onclick = () => {
-  window.location.href = `videos.html?subject=${encodeURIComponent(subject)}&teacher=${encodeURIComponent(teacher)}&chapter=${encodeURIComponent(chapter)}`;
-};
-
-// 🔹 دوال مساعدة
-function isYouTubeUrl(url) {
-  return /youtu\.be|youtube\.com/.test(url);
-}
-
-function getYouTubeId(url) {
-  try {
-    const u = new URL(url);
-    if (u.hostname.includes('youtu.be')) return u.pathname.replace('/', '');
-    if (u.searchParams.get('v')) return u.searchParams.get('v');
-    const m = u.pathname.match(/\/embed\/([^/?#]+)/);
-    return m ? m[1] : '';
-  } catch { return ''; }
-}
-
-let plyrPlayer = null; // هنستخدمه فقط للفيديوهات الـ MP4
-
-// 🔥 تحميل الأجزاء من Firebase
-onValue(ref(db, 'videos'), snapshot => {
-  const data = snapshot.val() || {};
-  const allVideos = Object.values(data);
-  const parts = allVideos.filter(v =>
-    v.subject === subject &&
-    v.teacher === teacher &&
-    v.chapter === chapter &&
-    v.lecture === lecture
-  );
-
-  if (parts.length === 0) {
-    partsContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700; padding:15px;">لا توجد أجزاء لهذه المحاضرة.</div>';
-    return;
-  }
-
-  // ✅ تشغيل أول فيديو تلقائيًا
-  loadVideo(parts[0].url);
-
-  // ✅ عرض قائمة الأجزاء
-  partsContainer.innerHTML = '';
-  parts.forEach((part, index) => {
-    const item = document.createElement('div');
-    item.className = 'part-item';
-    item.textContent = part.title || `الجزء ${index + 1}`;
-
-    if (index === 0) item.classList.add('active');
-
-    item.addEventListener('click', () => {
-      document.querySelectorAll('.part-item').forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
-      loadVideo(part.url);
+    document.querySelectorAll(".app-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        showToast("🚧 سيتم إضافة هذه الميزة قريبًا 🔜");
+      });
     });
-
-    partsContainer.appendChild(item);
-  });
-});
-
-// ✅ دالة التحميل الذكي (تبدل بين YouTube و Plyr)
-function loadVideo(url) {
-  videoWrapper.innerHTML = ''; // تنظيف المشغل السابق
-  if (plyrPlayer) {
-    plyrPlayer.destroy(); // حذف مشغل Plyr القديم
-    plyrPlayer = null;
-  }
-
-  if (isYouTubeUrl(url)) {
-    const ytId = getYouTubeId(url);
-    const iframe = document.createElement('iframe');
-    iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
-    iframe.allowFullscreen = true;
-    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-    videoWrapper.appendChild(iframe);
-  } else if (url.endsWith('.mp4')) {
-    const video = document.createElement('video');
-    video.controls = true;
-    video.playsInline = true;
-    video.src = url;
-    videoWrapper.appendChild(video);
-    plyrPlayer = new Plyr(video, {
-      controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-      clickToPlay: true,
-    });
-    video.play();
-  } else {
-    videoWrapper.innerHTML = '<div style="padding:40px; text-align:center; color:#ffd700;">⚠️ لا يمكن تشغيل هذا النوع من الفيديوهات.</div>';
-  }
-}
-</script>
-
+  </script>
 </body>
 </html>
