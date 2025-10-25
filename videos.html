@@ -84,14 +84,16 @@ onValue(ref(db, 'videos'), snapshot => {
     return;
   }
 
-  // تعديل: إضافة فلترة إضافية بناءً على "lecture" في العنوان
-  v.subject === subject && 
-v.teacher === teacher && 
-v.chapter === chapter &&
-v.lecture
+  // ✅ فلترة الفيديوهات حسب المادة والمدرس والباب ووجود خانة lecture
+  const videos = Object.values(data).filter(v => 
+    v.subject === subject && 
+    v.teacher === teacher && 
+    v.chapter === chapter && 
+    v.lecture
+  );
 
   if(videos.length === 0){
-    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد فيديوهات في هذا الباب تحتوي على "lecture".</div>';
+    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد فيديوهات في هذا الباب.</div>';
     return;
   }
 
@@ -104,13 +106,12 @@ v.lecture
     const thumb = video.imageUrl || (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'https://via.placeholder.com/300x200?text=VIDEO');
 
     box.innerHTML = `
-      <div class="video-title">${video.title}</div>
+      <div class="video-title">${video.lecture || video.title}</div>
       <div class="video-teacher">المدرس: ${video.teacher} | ${video.chapter}</div>
       <div class="thumb"><img src="${thumb}"><div class="play-btn">▶</div></div>
     `;
 
     box.querySelector('.thumb').addEventListener('click', () => {
-      // فتح في صفحة جديدة مع تمرير رابط الفيديو
       const videoPage = `player.html?url=${encodeURIComponent(video.url)}`;
       window.location.href = videoPage;
     });
