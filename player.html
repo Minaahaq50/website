@@ -1,114 +1,116 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>🎓 مشغل المحاضرة - منصة THE BEST</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>مشغل المحاضرة - منصة THE BEST</title>
 
-  <!-- مكتبة Plyr -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css" />
+<!-- ✅ استدعاء مكتبة Plyr -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css" />
 
-  <style>
-    :root {
-      --main-color: #ffd700;
-      --dark-bg: #0d0d0d;
-      --box-bg: #1a1a1a;
-      --hover: rgba(255, 215, 0, 0.15);
-    }
-    body {
-      margin: 0;
-      font-family: 'Cairo', sans-serif;
-      background: var(--dark-bg);
-      color: #fff;
-    }
-    header {
-      background: var(--box-bg);
-      color: var(--main-color);
-      text-align: center;
-      padding: 20px;
-      font-size: 22px;
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-    }
-    #container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
-    #video-wrapper {
-      width: 100%;
-      max-width: 960px;
-      background: var(--box-bg);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(255,215,0,0.1);
-      margin-bottom: 25px;
-    }
-    .plyr {
-      border-radius: 12px;
-    }
-    #parts-container {
-      width: 100%;
-      max-width: 960px;
-      background: var(--box-bg);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(255,215,0,0.1);
-    }
-    .part-item {
-      padding: 15px 20px;
-      border-bottom: 1px solid rgba(255,215,0,0.1);
-      cursor: pointer;
-      transition: background 0.3s;
-      font-size: 17px;
-      color: var(--main-color);
-    }
-    .part-item:hover {
-      background: var(--hover);
-    }
-    .part-item.active {
-      background: rgba(255,215,0,0.3);
-      color: #fff;
-      font-weight: bold;
-    }
-    #back {
-      color: var(--main-color);
-      margin-top: 15px;
-      cursor: pointer;
-      font-size: 16px;
-      text-align: center;
-    }
-    #back:hover {
-      text-decoration: underline;
-    }
-    @media (max-width: 768px) {
-      #video-wrapper { max-width: 100%; }
-      #parts-container { font-size: 15px; }
-    }
-  </style>
+<style>
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: #0d0d0d;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    background: #1a1a1a;
+    color: #ffd700;
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+    box-shadow: 0 0 10px rgba(255,215,0,0.2);
+  }
+
+  #container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 25px;
+    gap: 25px;
+  }
+
+  /* مشغل الفيديو */
+  #video-wrapper {
+    width: 100%;
+    max-width: 950px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(255,215,0,0.2);
+    background: #000;
+  }
+
+  iframe, video {
+    width: 100%;
+    height: 520px;
+    display: block;
+  }
+
+  /* قائمة الأجزاء */
+  #parts-container {
+    width: 100%;
+    max-width: 950px;
+    background: #1a1a1a;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(255,215,0,0.1);
+    overflow: hidden;
+  }
+
+  .part-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255,215,0,0.1);
+    color: #ffd700;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-size: 17px;
+  }
+
+  .part-item:hover {
+    background: rgba(255,215,0,0.08);
+  }
+
+  .part-item.active {
+    background: rgba(255,215,0,0.25);
+    color: #fff;
+    font-weight: bold;
+  }
+
+  #back {
+    color: #ffd700;
+    text-align: center;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+
+  @media (max-width: 768px) {
+    iframe, video { height: 300px; }
+  }
+</style>
 </head>
 <body>
 
-<header>🎥 مشغل المحاضرة</header>
+<header>🎓 مشغل المحاضرة</header>
 
 <div id="container">
   <div id="video-wrapper">
-    <video id="player" playsinline controls data-poster="">
-      <source src="" type="video/mp4">
-    </video>
+    <!-- المشغل سيُضاف هنا تلقائيًا -->
   </div>
 
   <div id="parts-container">
-    <div style="text-align:center; font-size:18px; color:var(--main-color); padding:15px;">جارٍ تحميل الأجزاء...</div>
+    <div style="text-align:center; font-size:18px; color:#ffd700; padding:15px;">جارٍ تحميل الأجزاء...</div>
   </div>
 
   <div id="back">⬅ العودة إلى قائمة المحاضرات</div>
 </div>
 
-<!-- سكربت Plyr -->
+<!-- ✅ مكتبة Plyr -->
 <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.js"></script>
 
-<!-- سكربت Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
@@ -120,7 +122,7 @@ const firebaseConfig = {
   projectId: "alamer-526ff",
   storageBucket: "alamer-526ff.firebasestorage.app",
   messagingSenderId: "523879269039",
-  appId: "1:523879269039:web:634861aa34641bfebf8a5a"
+  appId: "1:523879269039:web:634861aa34641bfebf8a5a",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -136,104 +138,93 @@ const videoWrapper = document.getElementById('video-wrapper');
 const partsContainer = document.getElementById('parts-container');
 const backBtn = document.getElementById('back');
 
-// الرجوع
 backBtn.onclick = () => {
   window.location.href = `videos.html?subject=${encodeURIComponent(subject)}&teacher=${encodeURIComponent(teacher)}&chapter=${encodeURIComponent(chapter)}`;
 };
 
+// 🔹 دوال مساعدة
 function isYouTubeUrl(url) {
   return /youtu\.be|youtube\.com/.test(url);
 }
+
 function getYouTubeId(url) {
   try {
     const u = new URL(url);
-    if (u.hostname.includes('youtu.be')) return u.pathname.replace('/','');
+    if (u.hostname.includes('youtu.be')) return u.pathname.replace('/', '');
     if (u.searchParams.get('v')) return u.searchParams.get('v');
     const m = u.pathname.match(/\/embed\/([^/?#]+)/);
     return m ? m[1] : '';
   } catch { return ''; }
 }
 
-// إنشاء مشغل Plyr أساسي
-let plyrPlayer = new Plyr('#player', {
-  controls: ['play-large','play','progress','current-time','duration','mute','volume','settings','fullscreen','speed','pip'],
-  settings: ['quality','speed'],
-  speed: { selected: 1, options: [0.5, 1, 1.5, 2] },
-  quality: { default: 720, options: [360, 480, 720, 1080] }
-});
+let plyrPlayer = null; // هنستخدمه فقط للفيديوهات الـ MP4
 
-// تحميل الفيديوهات
+// 🔥 تحميل الأجزاء من Firebase
 onValue(ref(db, 'videos'), snapshot => {
   const data = snapshot.val() || {};
-  const videos = Object.values(data).filter(v =>
+  const allVideos = Object.values(data);
+  const parts = allVideos.filter(v =>
     v.subject === subject &&
     v.teacher === teacher &&
     v.chapter === chapter &&
     v.lecture === lecture
   );
 
-  if (videos.length === 0) {
-    partsContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:var(--main-color); padding:15px;">لا توجد أجزاء لهذه المحاضرة.</div>';
+  if (parts.length === 0) {
+    partsContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700; padding:15px;">لا توجد أجزاء لهذه المحاضرة.</div>';
     return;
   }
 
-  // ترتيب الأجزاء حسب الاسم أو الترتيب
-  videos.sort((a,b) => a.title.localeCompare(b.title, 'ar'));
+  // ✅ تشغيل أول فيديو تلقائيًا
+  loadVideo(parts[0].url);
 
-  // تحميل أول جزء
-  loadVideo(videos[0].url);
-  saveProgress(videos[0].url);
-
+  // ✅ عرض قائمة الأجزاء
   partsContainer.innerHTML = '';
-  videos.forEach((vid, i) => {
+  parts.forEach((part, index) => {
     const item = document.createElement('div');
     item.className = 'part-item';
-    item.textContent = vid.title || `الجزء ${i+1}`;
-    if (i === 0) item.classList.add('active');
+    item.textContent = part.title || `الجزء ${index + 1}`;
 
-    item.onclick = () => {
+    if (index === 0) item.classList.add('active');
+
+    item.addEventListener('click', () => {
       document.querySelectorAll('.part-item').forEach(i => i.classList.remove('active'));
       item.classList.add('active');
-      loadVideo(vid.url);
-      saveProgress(vid.url);
-    };
+      loadVideo(part.url);
+    });
 
     partsContainer.appendChild(item);
   });
 });
 
+// ✅ دالة التحميل الذكي (تبدل بين YouTube و Plyr)
 function loadVideo(url) {
+  videoWrapper.innerHTML = ''; // تنظيف المشغل السابق
+  if (plyrPlayer) {
+    plyrPlayer.destroy(); // حذف مشغل Plyr القديم
+    plyrPlayer = null;
+  }
+
   if (isYouTubeUrl(url)) {
     const ytId = getYouTubeId(url);
-    videoWrapper.innerHTML = `
-      <div class="plyr__video-embed" id="playerYouTube">
-        <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1"
-          allowfullscreen allow="autoplay"></iframe>
-      </div>`;
-    new Plyr('#playerYouTube');
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+    iframe.allowFullscreen = true;
+    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    videoWrapper.appendChild(iframe);
+  } else if (url.endsWith('.mp4')) {
+    const video = document.createElement('video');
+    video.controls = true;
+    video.playsInline = true;
+    video.src = url;
+    videoWrapper.appendChild(video);
+    plyrPlayer = new Plyr(video, {
+      controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+      clickToPlay: true,
+    });
+    video.play();
   } else {
-    videoWrapper.innerHTML = `
-      <video id="player" playsinline controls data-poster="">
-        <source src="${url}" type="video/mp4">
-      </video>`;
-    plyrPlayer = new Plyr('#player');
-    restoreProgress(url);
-  }
-}
-
-// حفظ واسترجاع التقدّم في الفيديو
-function saveProgress(videoUrl) {
-  const player = document.querySelector('#player');
-  if (!player) return;
-  player.addEventListener('timeupdate', () => {
-    localStorage.setItem(`progress_${videoUrl}`, player.currentTime);
-  });
-}
-function restoreProgress(videoUrl) {
-  const player = document.querySelector('#player');
-  const savedTime = localStorage.getItem(`progress_${videoUrl}`);
-  if (savedTime) {
-    player.currentTime = parseFloat(savedTime);
+    videoWrapper.innerHTML = '<div style="padding:40px; text-align:center; color:#ffd700;">⚠️ لا يمكن تشغيل هذا النوع من الفيديوهات.</div>';
   }
 }
 </script>
