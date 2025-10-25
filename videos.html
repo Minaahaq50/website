@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+><!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8" />
@@ -84,50 +84,34 @@ onValue(ref(db, 'videos'), snapshot => {
     return;
   }
 
-  // فلترة الفيديوهات حسب المادة والمدرس والباب
   const videos = Object.values(data).filter(v => 
     v.subject === subject && 
     v.teacher === teacher && 
-    v.chapter === chapter &&
-    v.lecture
+    v.chapter === chapter
   );
 
   if(videos.length === 0){
-    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد محاضرات في هذا الباب.</div>';
+    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد فيديوهات في هذا الباب.</div>';
     return;
   }
 
-  // تجميع الفيديوهات حسب اسم المحاضرة (إزالة التكرار)
-  const lectures = [...new Set(videos.map(v => v.lecture))];
-
   videosContainer.innerHTML = '';
-
-  // عرض كل محاضرة كفيديو
-  lectures.forEach(lectureName => {
+  videos.forEach(video => {
     const box = document.createElement('div');
     box.className = 'video-box';
-    box.style.cursor = 'pointer';
+    const youtube = isYouTubeUrl(video.url);
+    const ytId = youtube ? getYouTubeId(video.url) : '';
+    const thumb = video.imageUrl || (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'https://via.placeholder.com/300x200?text=VIDEO');
 
-    // الحصول على أول فيديو في المحاضرة لاستخدام صورته المصغّرة
-    const lectureVideos = videos.filter(v => v.lecture === lectureName);
-    const firstVideo = lectureVideos[0];
-    const youtube = firstVideo && isYouTubeUrl(firstVideo.url);
-    const ytId = youtube ? getYouTubeId(firstVideo.url) : '';
-    const thumb = firstVideo?.imageUrl || (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'https://via.placeholder.com/300x200?text=Lecture');
-
-    // تصميم كارت المحاضرة
     box.innerHTML = `
-      <div class="thumb">
-        <img src="${thumb}" alt="صورة المحاضرة">
-        <div class="play-btn">▶</div>
-      </div>
-      <div class="video-title">${lectureName}</div>
+      <div class="video-title">${video.title}</div>
+      <div class="video-teacher">المدرس: ${video.teacher} | ${video.chapter}</div>
+      <div class="thumb"><img src="${thumb}"><div class="play-btn">▶</div></div>
     `;
 
-    // الضغط يفتح صفحة التشغيل
-    box.addEventListener('click', () => {
-      const lecturePage = `player.html?subject=${encodeURIComponent(subject)}&teacher=${encodeURIComponent(teacher)}&chapter=${encodeURIComponent(chapter)}&lecture=${encodeURIComponent(lectureName)}`;
-      window.location.href = lecturePage;
+    box.querySelector('.thumb').addEventListener('click', () => {
+      const videoPage = `player.html?url=${encodeURIComponent(video.url)}&title=${encodeURIComponent(video.title)}`;
+      window.location.href = videoPage;
     });
 
     videosContainer.appendChild(box);
@@ -135,4 +119,4 @@ onValue(ref(db, 'videos'), snapshot => {
 });
 </script>
 </body>
-  </html>
+</html>
