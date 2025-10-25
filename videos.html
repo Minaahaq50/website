@@ -88,26 +88,24 @@ const chapter = urlParams.get('chapter');
 
 const videosContainer = document.getElementById('videos-container');
 const backBtn = document.getElementById('backBtn');
-backBtn.onclick = () => {
-  window.history.back();
-};
+backBtn.onclick = () => window.history.back();
 
 onValue(ref(db, 'videos'), snapshot => {
   const data = snapshot.val() || {};
+  console.log("Data from Firebase:", data); // تتأكد إذا الداتا وصلت
+
   if(!subject || !teacher || !chapter){
     videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لم يتم تحديد المادة أو المدرس أو الباب.</div>';
     return;
   }
 
-  // ✅ جمع الفيديوهات حسب المحاضرة
   const lecturesMap = {};
-Object.values(data).forEach(v => {
+  Object.values(data).forEach(v => {
     if(v.subject===subject && v.teacher===teacher && v.chapter===chapter){
       if(!lecturesMap[v.lecture]) lecturesMap[v.lecture] = [];
       lecturesMap[v.lecture].push(v);
     }
-});
-
+  });
 
   if(Object.keys(lecturesMap).length===0){
     videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد محاضرات في هذا الباب.</div>';
@@ -120,7 +118,7 @@ Object.values(data).forEach(v => {
     box.className = 'video-box';
     const thumb = videos[0].imageUrl || 'https://via.placeholder.com/300x200?text=VIDEO';
     box.innerHTML = `
-      <div class="video-title">${lectureName}</div>
+      <div class="video-title">${lecture}</div>
       <div class="video-teacher">المدرس: ${teacher} | ${chapter}</div>
       <div class="thumb" data-lecture='${lecture}'>
         <img src="${thumb}">
@@ -128,10 +126,9 @@ Object.values(data).forEach(v => {
       </div>
     `;
     box.querySelector('.thumb').addEventListener('click', ()=>{
-      // تحويل كل أجزاء المحاضرة للـ player
       const urls = videos.map(v=>encodeURIComponent(v.url)).join(',');
       const titles = videos.map(v=>encodeURIComponent(v.title)).join(',');
-      window.location.href = player.html?urls=${urls}&titles=${titles}&lecture=${encodeURIComponent(lectureName)}&teacher=${encodeURIComponent(teacher)}&chapter=${encodeURIComponent(chapter)};
+      window.location.href = player.html?urls=${urls}&titles=${titles}&lecture=${encodeURIComponent(lecture)}&teacher=${encodeURIComponent(teacher)}&chapter=${encodeURIComponent(chapter)};
     });
     videosContainer.appendChild(box);
   });
