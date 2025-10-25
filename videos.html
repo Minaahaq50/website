@@ -84,12 +84,16 @@ onValue(ref(db, 'videos'), snapshot => {
     return;
   }
 
+  // تعديل: إضافة فلترة إضافية بناءً على "lecture" في العنوان
   const videos = Object.values(data).filter(v => 
-    v.subject === subject && v.teacher === teacher && v.chapter === chapter
+    v.subject === subject && 
+    v.teacher === teacher && 
+    v.chapter === chapter &&
+    v.title && v.title.toLowerCase().includes('lecture')  // فلترة إضافية: يجب أن يحتوي العنوان على "lecture" (غير حساس لحالة الأحرف)
   );
 
   if(videos.length === 0){
-    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد فيديوهات في هذا الباب.</div>';
+    videosContainer.innerHTML = '<div style="text-align:center; font-size:18px; color:#ffd700;">لا توجد فيديوهات في هذا الباب تحتوي على "lecture".</div>';
     return;
   }
 
@@ -118,4 +122,4 @@ onValue(ref(db, 'videos'), snapshot => {
 });
 </script>
 </body>
-</html>
+  </html>
